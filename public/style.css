@@ -1,0 +1,32 @@
+p {
+    color: red;
+}
+
+a {
+    text-decoration: none;
+    font-weight: 600;
+    color: white;
+}
+
+header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    max-width: 600px;
+    gap: 50px;
+    right: 50rem;
+    margin-bottom: 5rem;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
