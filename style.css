@@ -5,4 +5,17 @@ p {
 a {
     text-decoration: none;
     font-weight: 600;
+    color: white;
+}
+
+header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    max-width: 600px;
+}
+
+body {
+    display: flex;
+    justify-content: center;
 }
