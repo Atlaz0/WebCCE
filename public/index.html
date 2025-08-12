@@ -1,26 +1,28 @@
 <!DOCTYPE html>
-<link rel="stylesheet" href="./style.css">
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>WebCCE</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <a class="" href="./register.html">Sign Up</a>
-    </header>
-    <div class="hero">
-        <form id="login-form">
-            <input type="text" id="username" name="username" class="login-form-field" required placeholder="Username">
-            <input type="password" id="password" name="password" class="login-form-field" required placeholder="Password">
-            <div class="options">
-                <input type="checkbox" id="remember" name="remember">
-                <label for="remember">Remember me</label>
-                <a href="#">Forgot Password?</a>
-            </div>
-            <button id="login-button" type="submit">Login</button>
-            <p>Don't have an account? <a href="./Register.html" id="register">Sign Up</a></p>
-        </form>
+    <div class="login-container">
+        <div class="login-box">
+            <h2>Login</h2>
+            <form id="login-form">
+                <input type="text" name="username" required placeholder="Username">
+                <input type="text" name="group" required placeholder="Group">
+                <input type="password" name="password" required placeholder="Password">
+                <div class="options">
+                    <input type="checkbox" name="remember" id="remember">
+                    <label for="remember">Remember me</label>
+                    <a href="#">Forgot Password?</a>
+                </div>
+                <button type="submit">Login</button>
+                <p>Don't have an account? <a href="register.html">Register</a></p>
+            </form>
+        </div>
     </div>
+    <script src="Login.js"></script>
 </body>
 </html>
