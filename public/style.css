@@ -63,8 +63,9 @@ input::placeholder {
 }
 
 .options input[type="checkbox"] {
-    margin: 0; /* remove default offset */
-    transform: translateY(0.04rem); /* 1px nudge for perfect centering */
+    margin: 0;
+    transform: translateX(-0.1rem);
+    transform: translateY(0rem);
 }
 
 button {
@@ -80,7 +81,7 @@ button {
 button:hover {
     background: transparent;
     color: white;
-    outline: 1rem solid #fff;
+    outline: 1px solid #fff;
 }
 
 p {
