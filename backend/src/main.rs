@@ -1,11 +1,12 @@
 use axum::{
-    routing::{get, post, options},
+    routing::{get, post},
     Router,
     response::Html,
 };
 use std::net::SocketAddr;
-use hyper::http::{HeaderValue, Method};
+use hyper::http::Method;
 use tower_http::cors::{Any, CorsLayer};
+
 
 mod signup;
 use signup::signup_user;
