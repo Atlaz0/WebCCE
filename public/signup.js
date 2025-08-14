@@ -1,4 +1,4 @@
-document.getElementById("login-form").addEventListener("submit", async (e) => {
+document.getElementById("login_form").addEventListener("submit", async (e) => {
     e.preventDefault();
     console.log("Signup form submitted");
 
@@ -6,12 +6,12 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirm_password").value;
     const room_id = document.getElementById("roomid").value.trim();
-    const errorMsg = document.getElementById("password-error");
+    const errorMsg = document.getElementById("password_error");
 
     console.log("Collected form data:", { username, password, confirmPassword, room_id });
 
     if (password !== confirmPassword) {
-        console.warn("⚠ Passwords do not match!");
+        console.warn("Passwords do not match!");
         errorMsg.style.display = "block";
         return;
     } else {
@@ -26,7 +26,7 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
             body: JSON.stringify({ username, password, room_id })
         });
 
-        console.log("📡 Server responded with status:", response.status);
+        console.log("Server responded with status:", response.status);
 
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
