@@ -4,7 +4,7 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirm_password").value;
-    const roomId = document.getElementById("roomid").value.trim();
+    const room_id = document.getElementById("roomid").value.trim();
     const errorMsg = document.getElementById("password-error");
 
     // Check password match
@@ -16,10 +16,10 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
     }
 
     try {
-        const response = await fetch("https://api.mp2upnhs.my/register", {
+        const response = await fetch("https://api.mp2upnhs.my/signup", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password, roomId })
+            body: JSON.stringify({ username, password, room_id })
         });
 
         if (!response.ok) {

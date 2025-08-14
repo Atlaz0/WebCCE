@@ -2,12 +2,14 @@ use axum::{
     routing::{get, post},
     Router,
     response::Html,
-    Json,
 };
-use serde::Deserialize;
 use std::net::SocketAddr;
-use hyper::{Server, http::{HeaderValue, Method}};
+use hyper::http::{HeaderValue, Method};
 use tower_http::cors::{Any, CorsLayer};
+
+// Import the signup module
+mod signup;
+use signup::signup_user;
 
 async fn index() -> Html<&'static str> {
     Html("<h1>WebCCE Rust Backend is Running!</h1>")
@@ -15,22 +17,6 @@ async fn index() -> Html<&'static str> {
 
 async fn ping() -> &'static str {
     "pong"
-}
-
-#[derive(Deserialize)]
-struct RegisterData {
-    username: String,
-    password: String,
-    roomid: String,
-}
-
-async fn register_user(Json(data): Json<RegisterData>) -> Json<&'static str> {
-    println!("Received registration:");
-    println!("  Username: {}", data.username);
-    println!("  Password: {}", data.password);
-    println!("  Room ID: {}", data.roomid);
-
-    Json("User registered successfully")
 }
 
 #[tokio::main]
@@ -43,13 +29,13 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/ping", get(ping))
-        .route("/register", post(register_user))
+        .route("/signup", post(signup_user))
         .layer(cors);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     println!("Server running at http://{}", addr);
 
-    Server::bind(&addr)
+    axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .unwrap();
