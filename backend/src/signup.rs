@@ -16,20 +16,34 @@ pub struct SignUpData {
 }
 
 pub async fn signup_user(Json(data): Json<SignUpData>) -> Json<&'static str> {
-    println!("Received SignUp:");
+    println!("--- New signup request received ---");
+
+    println!("Step 1: Parsed JSON data");
     println!("  Username: {}", data.username);
     println!("  Password: {}", data.password);
     println!("  Room ID: {}", data.room_id);
 
-    // Save to a file safely
+    // Try saving to file
+    println!("Step 2: Attempting to save user to users.txt");
     let _lock = FILE_LOCK.lock().unwrap();
-    let mut file = OpenOptions::new()
+    match OpenOptions::new()
         .append(true)
         .create(true)
         .open("users.txt")
-        .unwrap();
+    {
+        Ok(mut file) => {
+            if let Err(e) = writeln!(file, "{},{},{}", data.username, data.password, data.room_id) {
+                eprintln!("Failed to write to file: {}", e);
+                return Json("Error saving user");
+            }
+            println!("Successfully saved user to users.txt");
+        }
+        Err(e) => {
+            eprintln!("Failed to open file: {}", e);
+            return Json("Error saving user");
+        }
+    }
 
-    writeln!(file, "{},{},{}", data.username, data.password, data.room_id).unwrap();
-
+    println!("Step 3: Sending success response to client");
     Json("User signed up successfully")
 }
