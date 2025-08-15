@@ -17,7 +17,7 @@ document.getElementById("login_form").addEventListener("submit", async (e) => {
     const room_id = document.getElementById("room_id").value.trim();
 
     try {
-        const response = await fetch("https://api.mp2upnhs.my/login", {
+        const response = await fetch("https://api.mp2upnhs.my/signup", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
