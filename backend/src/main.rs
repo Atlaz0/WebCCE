@@ -1,15 +1,12 @@
 use axum::{
     routing::{get, post},
-    Router,
     response::Html,
+    Router,
 };
-use std::net::SocketAddr;
-use hyper::http::Method;
+use tokio::net::TcpListener;
 use tower_http::cors::{Any, CorsLayer};
 
-
-mod signup;
-use signup::signup_user;
+mod auth;
 
 async fn index() -> Html<&'static str> {
     Html("<h1>WebCCE Rust Backend is Running!</h1>")
@@ -23,20 +20,18 @@ async fn ping() -> &'static str {
 async fn main() {
     let cors = CorsLayer::new()
         .allow_origin(Any)
-        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_methods(Any)
         .allow_headers(Any);
 
     let app = Router::new()
         .route("/", get(index))
         .route("/ping", get(ping))
-        .route("/signup", post(signup_user).options(|| async { "" }))
+        .route("/signup", post(auth::signup_user))
+        .route("/login", post(auth::login_user))
         .layer(cors);
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
-    println!("Server running at http://{}", addr);
-
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    println!("Server running on {}", listener.local_addr().unwrap());
+    
+    axum::serve(listener, app).await.unwrap();
 }
