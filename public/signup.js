@@ -1,3 +1,8 @@
+window.addEventListener("load", () => {
+    fetch("https://api.mp2upnhs.my/ping")
+        .catch(err => console.warn("Ping failed:", err));
+});
+
 document.getElementById("login_form").addEventListener("submit", async (e) => {
     e.preventDefault();
     console.log("Signup form submitted");
