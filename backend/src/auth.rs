@@ -24,16 +24,14 @@ pub async fn signup_user(Json(data): Json<AuthData>) -> Json<&'static str> {
     let existing_data = read_to_string(USERS_FILE).unwrap_or_default();
     for line in existing_data.lines() {
         if let Some((stored_username, _, _)) = parse_user_line(line) {
-            if verify(&data.username, stored_username).unwrap_or(false) {
+            // ⚠️ bcrypt hashes are non-deterministic; use plaintext for username instead
+            if data.username == stored_username {
                 return Json("Username already exists");
             }
         }
     }
 
-    let hashed_username = match hash(&data.username, DEFAULT_COST) {
-        Ok(h) => h,
-        Err(_) => return Json("Error hashing username"),
-    };
+    // Store username in plaintext for uniqueness check
     let hashed_password = match hash(&data.password, DEFAULT_COST) {
         Ok(h) => h,
         Err(_) => return Json("Error hashing password"),
@@ -45,7 +43,7 @@ pub async fn signup_user(Json(data): Json<AuthData>) -> Json<&'static str> {
 
     match OpenOptions::new().append(true).create(true).open(USERS_FILE) {
         Ok(mut file) => {
-            let new_line = format!("{},{},{}", hashed_username, hashed_password, hashed_room_id);
+            let new_line = format!("{},{},{}", data.username, hashed_password, hashed_room_id);
             if let Err(e) = writeln!(file, "{}", new_line) {
                 eprintln!("Failed to write to file: {}", e);
                 return Json("Error saving user data");
@@ -70,11 +68,10 @@ pub async fn login_user(Json(data): Json<AuthData>) -> Json<&'static str> {
 
     for line in contents.lines() {
         if let Some((stored_username, stored_password, stored_room_id)) = parse_user_line(line) {
-            let is_user_valid = verify(&data.username, stored_username).unwrap_or(false)
+            if data.username == stored_username
                 && verify(&data.password, stored_password).unwrap_or(false)
-                && verify(&data.room_id, stored_room_id).unwrap_or(false);
-
-            if is_user_valid {
+                && verify(&data.room_id, stored_room_id).unwrap_or(false)
+            {
                 return Json("Login successful");
             }
         }
