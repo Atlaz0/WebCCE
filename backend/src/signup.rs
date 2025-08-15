@@ -1,10 +1,10 @@
 use axum::Json;
+use bcrypt::{hash, DEFAULT_COST};
+use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::fs::{OpenOptions, read_to_string};
 use std::io::Write;
 use std::sync::Mutex;
-use once_cell::sync::Lazy;
-use bcrypt::{hash, DEFAULT_COST};
 
 static FILE_LOCK: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
@@ -18,48 +18,42 @@ pub struct SignUpData {
 pub async fn signup_user(Json(data): Json<SignUpData>) -> Json<&'static str> {
     println!("--- New signup request received ---");
 
-    println!("Step 1: Parsed JSON data");
-    println!("  Username: {}", data.username);
-    println!("  Password: {}", data.password);
-    println!("  Room ID: {}", data.room_id);
-
     let _lock = FILE_LOCK.lock().unwrap();
 
-    // Step 2: Read existing users
+    // Read existing users
     let existing_data = read_to_string("users.txt").unwrap_or_default();
     for line in existing_data.lines() {
-        let parts: Vec<&str> = line.split(',').collect();
-        if parts.len() >= 3 {
-            if parts[0] == data.username {
-                return Json("Error: Username already exists");
-            }
-            if parts[2] == data.room_id {
-                return Json("Error: Room ID already exists");
+        if let Some((stored_username, _, _)) = line.split_once(',').and_then(|(u, rest)| {
+            rest.split_once(',').map(|(p, r)| (u, p, r))
+        }) {
+            // Compare hashed username
+            if bcrypt::verify(&data.username, stored_username).unwrap_or(false) {
+                return Json("Username already exists");
             }
         }
     }
 
-    // Step 3: Hash password
+    // Hash username, password, and room_id
+    let hashed_username = match hash(&data.username, DEFAULT_COST) {
+        Ok(h) => h,
+        Err(_) => return Json("Error hashing username"),
+    };
     let hashed_password = match hash(&data.password, DEFAULT_COST) {
         Ok(h) => h,
-        Err(e) => {
-            eprintln!("Failed to hash password: {}", e);
-            return Json("Error hashing password");
-        }
+        Err(_) => return Json("Error hashing password"),
+    };
+    let hashed_room_id = match hash(&data.room_id, DEFAULT_COST) {
+        Ok(h) => h,
+        Err(_) => return Json("Error hashing room ID"),
     };
 
-    // Step 4: Save to file
-    match OpenOptions::new()
-        .append(true)
-        .create(true)
-        .open("users.txt")
-    {
+    // Append to file
+    match OpenOptions::new().append(true).create(true).open("users.txt") {
         Ok(mut file) => {
-            if let Err(e) = writeln!(file, "{},{},{}", data.username, hashed_password, data.room_id) {
+            if let Err(e) = writeln!(file, "{},{},{}", hashed_username, hashed_password, hashed_room_id) {
                 eprintln!("Failed to write to file: {}", e);
                 return Json("Error saving user");
             }
-            println!("Successfully saved user to users.txt");
         }
         Err(e) => {
             eprintln!("Failed to open file: {}", e);
@@ -67,6 +61,5 @@ pub async fn signup_user(Json(data): Json<SignUpData>) -> Json<&'static str> {
         }
     }
 
-    println!("Step 5: Sending success response to client");
     Json("User signed up successfully")
 }
