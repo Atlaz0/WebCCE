@@ -13,7 +13,7 @@ document.getElementById("login_form").addEventListener("submit", async (e) => {
     if (messageDiv) messageDiv.textContent = "";
 
     const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value;
+    const password = document.getElementById("password").value.trim();
     const room_id = document.getElementById("room_id").value.trim();
 
     try {

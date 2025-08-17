@@ -8,9 +8,9 @@ document.getElementById("signup_form").addEventListener("submit", async (e) => {
     console.log("Signup form submitted");
 
     const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value;
-    const confirmPassword = document.getElementById("confirm_password").value;
-    const room_id = document.getElementById("roomid").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const confirmPassword = document.getElementById("confirm_password").value.trim();
+    const room_id = document.getElementById("room_id").value.trim();
     
     const messageDiv = document.getElementById("message"); 
     messageDiv.textContent = "";
