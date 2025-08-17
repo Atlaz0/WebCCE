@@ -9,12 +9,14 @@
     <div class="login_container">
         <div class="login_box">
             <h2>Sign Up</h2>
-            <form id="login_form">
+            <form id="signup_form"> 
                 <input type="text" id="username" name="username" required placeholder="Username">
                 <input type="password" id="password" name="password" required placeholder="Password">
                 <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm Password">
-                <p id="password_error" >Passwords don't match</p>
                 <input type="text" id="roomid" name="roomid" required placeholder="RoomID">
+                
+                <div id="message"></div> 
+
                 <div class="options">
                     <input type="checkbox" name="remember" id="remember">
                     <label for="remember">Remember me</label>

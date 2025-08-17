@@ -3,7 +3,7 @@ window.addEventListener("DOMContentLoaded", () => {
         .catch(err => console.warn("Ping failed:", err));
 });
 
-document.getElementById("login_form").addEventListener("submit", async (e) => {
+document.getElementById("signup_form").addEventListener("submit", async (e) => {
     e.preventDefault();
     console.log("Signup form submitted");
 
@@ -11,16 +11,15 @@ document.getElementById("login_form").addEventListener("submit", async (e) => {
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirm_password").value;
     const room_id = document.getElementById("roomid").value.trim();
-    const errorMsg = document.getElementById("password_error");
-
-    console.log("Collected form data:", { username, password, confirmPassword, room_id });
+    
+    const messageDiv = document.getElementById("message"); 
+    messageDiv.textContent = "";
 
     if (password !== confirmPassword) {
         console.warn("Passwords do not match!");
-        errorMsg.style.display = "block";
+        messageDiv.style.color = "red";
+        messageDiv.textContent = "Passwords do not match!";
         return;
-    } else {
-        errorMsg.style.display = "none";
     }
 
     try {
@@ -32,20 +31,22 @@ document.getElementById("login_form").addEventListener("submit", async (e) => {
         });
 
         console.log("Server responded with status:", response.status);
+        const result = await response.json();
 
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
+        if (response.ok) {
+            console.log("Server says:", result);
+            alert("Account created successfully! You will be redirected to the login page.");
+            console.log("➡ Redirecting to login.html");
+            window.location.href = "./login.html";
+        } else {
+            console.error("Signup failed:", result);
+            messageDiv.style.color = "red";
+            messageDiv.textContent = result || "An unknown error occurred.";
         }
-
-        const data = await response.json();
-        console.log("Server says:", data);
-
-        alert("Account created successfully!");
-        console.log("➡ Redirecting to login.html");
-        window.location.href = "./login.html";
 
     } catch (error) {
         console.error("Error during signup:", error);
-        alert("Something went wrong. Please try again.");
+        messageDiv.style.color = "red";
+        messageDiv.textContent = "Server not reachable. Please try again later.";
     }
 });

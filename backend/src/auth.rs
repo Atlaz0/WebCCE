@@ -1,5 +1,15 @@
-use axum::Json;
-use bcrypt::{hash, verify, DEFAULT_COST};
+use axum::{
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
+use argon2::{
+    self,
+    password_hash::{
+        rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString
+    },
+    Argon2
+};
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::fs::{read_to_string, OpenOptions};
@@ -16,7 +26,12 @@ pub struct AuthData {
     pub room_id: String,
 }
 
-pub async fn signup_user(Json(data): Json<AuthData>) -> Json<&'static str> {
+// Helper to create a consistent response format
+fn create_response(status: StatusCode, message: &'static str) -> Response {
+    (status, Json(message)).into_response()
+}
+
+pub async fn signup_user(Json(data): Json<AuthData>) -> Response {
     println!("--- [SIGNUP] New signup request received ---");
     println!("[SIGNUP] Username: {}", data.username);
     println!("[SIGNUP] Password (raw, not recommended in production!): {}", data.password);
@@ -31,37 +46,37 @@ pub async fn signup_user(Json(data): Json<AuthData>) -> Json<&'static str> {
     for (i, line) in existing_data.lines().enumerate() {
         println!("[SIGNUP] Checking line {}: {}", i, line);
         if let Some((stored_username, _, _)) = parse_user_line(line) {
-            println!("[SIGNUP] Parsed username from file: {}", stored_username);
             if data.username == stored_username {
                 println!("[SIGNUP] Username '{}' already exists!", data.username);
-                return Json("Username already exists");
+                return create_response(StatusCode::CONFLICT, "Username already exists");
             }
-        } else {
-            println!("[SIGNUP] Failed to parse line {}", i);
         }
     }
 
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = Argon2::default();
+
     // Hash password
-    let hashed_password = match hash(&data.password, DEFAULT_COST) {
+    let hashed_password = match argon2.hash_password(data.password.as_bytes(), &salt) {
         Ok(h) => {
             println!("[SIGNUP] Successfully hashed password");
-            h
+            h.to_string()
         }
         Err(e) => {
             println!("[SIGNUP] Error hashing password: {:?}", e);
-            return Json("Error hashing password");
+            return create_response(StatusCode::INTERNAL_SERVER_ERROR, "Error hashing password");
         }
     };
 
     // Hash room ID
-    let hashed_room_id = match hash(&data.room_id, DEFAULT_COST) {
+    let hashed_room_id = match argon2.hash_password(data.room_id.as_bytes(), &salt) {
         Ok(h) => {
             println!("[SIGNUP] Successfully hashed room ID");
-            h
+            h.to_string()
         }
         Err(e) => {
             println!("[SIGNUP] Error hashing room ID: {:?}", e);
-            return Json("Error hashing room ID");
+            return create_response(StatusCode::INTERNAL_SERVER_ERROR, "Error hashing room ID");
         }
     };
 
@@ -69,24 +84,24 @@ pub async fn signup_user(Json(data): Json<AuthData>) -> Json<&'static str> {
     match OpenOptions::new().append(true).create(true).open(USERS_FILE) {
         Ok(mut file) => {
             let new_line = format!("{},{},{}", data.username, hashed_password, hashed_room_id);
-            println!("[SIGNUP] Writing new line: {}", new_line);
+            println!("[SIGNUP] Writing new line to file");
             if let Err(e) = writeln!(file, "{}", new_line) {
                 println!("[SIGNUP] Failed to write to file: {}", e);
-                return Json("Error saving user data");
+                return create_response(StatusCode::INTERNAL_SERVER_ERROR, "Error saving user data");
             }
             println!("[SIGNUP] Successfully wrote new user to file");
         }
         Err(e) => {
             println!("[SIGNUP] Failed to open file: {}", e);
-            return Json("Error saving user data");
+            return create_response(StatusCode::INTERNAL_SERVER_ERROR, "Error saving user data");
         }
     }
 
     println!("[SIGNUP] Signup completed successfully for {}", data.username);
-    Json("User signed up successfully")
+    create_response(StatusCode::CREATED, "User signed up successfully")
 }
 
-pub async fn login_user(Json(data): Json<AuthData>) -> Json<&'static str> {
+pub async fn login_user(Json(data): Json<AuthData>) -> Response {
     println!("--- [LOGIN] New login request ---");
     println!("[LOGIN] Username: {}", data.username);
     println!("[LOGIN] Password (raw, not recommended in production!): {}", data.password);
@@ -96,53 +111,49 @@ pub async fn login_user(Json(data): Json<AuthData>) -> Json<&'static str> {
     println!("[LOGIN] Acquired file lock");
 
     let contents = match read_to_string(USERS_FILE) {
-        Ok(c) => {
-            println!("[LOGIN] Users file read successfully ({} bytes)", c.len());
-            c
-        }
-        Err(e) => {
-            println!("[LOGIN] Error reading user data: {:?}", e);
-            return Json("Error reading user data");
+        Ok(c) => c,
+        Err(_) => {
+            println!("[LOGIN] Users file not found or unreadable");
+            return create_response(StatusCode::INTERNAL_SERVER_ERROR, "Error reading user data");
         }
     };
 
     for (i, line) in contents.lines().enumerate() {
         println!("[LOGIN] Checking line {}: {}", i, line);
-        if let Some((stored_username, stored_password, stored_room_id)) = parse_user_line(line) {
-            println!("[LOGIN] Parsed -> username: {}", stored_username);
-
+        if let Some((stored_username, stored_password_hash, stored_room_id_hash)) = parse_user_line(line) {
             if data.username == stored_username {
                 println!("[LOGIN] Username match found for {}", stored_username);
 
-                let pass_ok = verify(&data.password, stored_password).unwrap_or(false);
+                let pass_hash = PasswordHash::new(stored_password_hash).unwrap();
+                let pass_ok = Argon2::default().verify_password(data.password.as_bytes(), &pass_hash).is_ok();
                 println!("[LOGIN] Password verification: {}", pass_ok);
 
-                let room_ok = verify(&data.room_id, stored_room_id).unwrap_or(false);
+                let room_hash = PasswordHash::new(stored_room_id_hash).unwrap();
+                let room_ok = Argon2::default().verify_password(data.room_id.as_bytes(), &room_hash).is_ok();
                 println!("[LOGIN] Room ID verification: {}", room_ok);
 
                 if pass_ok && room_ok {
                     println!("[LOGIN] Login successful for {}", stored_username);
-                    return Json("Login successful");
+                    return create_response(StatusCode::OK, "Login successful");
                 } else {
                     println!("[LOGIN] Failed verification for {}", stored_username);
                 }
             }
-        } else {
-            println!("[LOGIN] Could not parse line {}", i);
         }
     }
 
     println!("[LOGIN] No valid credentials found, login failed");
-    Json("Invalid username, password, or room ID")
+    create_response(StatusCode::UNAUTHORIZED, "Invalid username, password, or room ID")
 }
+
 
 fn parse_user_line(line: &str) -> Option<(&str, &str, &str)> {
     println!("[PARSER] Parsing line: {}", line);
     let result = line.split_once(',')
         .and_then(|(user, rest)| rest.split_once(',').map(|(pass, room)| (user, pass, room)));
 
-    if let Some((u, _, _)) = result {
-        println!("[PARSER] Parsed username: {}", u);
+    if result.is_some() {
+        println!("[PARSER] Successfully parsed line");
     } else {
         println!("[PARSER] Failed to parse line: {}", line);
     }

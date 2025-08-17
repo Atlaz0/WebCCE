@@ -17,21 +17,20 @@ document.getElementById("login_form").addEventListener("submit", async (e) => {
     const room_id = document.getElementById("room_id").value.trim();
 
     try {
-        const response = await fetch("https://api.mp2upnhs.my/signup", {
+        const response = await fetch("https://api.mp2upnhs.my/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({ username, password, room_id })
         });
-
-        const result = await response.json();
-
+        
         if (response.ok) {
             window.location.href = "./index.html";
         } else {
+            const errorMessage = await response.json();
             messageDiv.style.color = "red";
-            messageDiv.textContent = result.error || "Login failed.";
+            messageDiv.textContent = errorMessage || "Login failed.";
         }
     } catch (err) {
         console.error("Login error:", err);
