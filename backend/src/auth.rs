@@ -5,12 +5,11 @@ use axum::{
 };
 use argon2::{
     self,
-    password_hash::{
-        rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString
-    },
-    Argon2
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Argon2,
 };
 use once_cell::sync::Lazy;
+use rand_core::OsRng; // Correctly imported directly
 use serde::Deserialize;
 use std::fs::{read_to_string, OpenOptions};
 use std::io::Write;
