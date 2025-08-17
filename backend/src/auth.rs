@@ -174,6 +174,8 @@ pub async fn login_user(Json(data): Json<AuthData>) -> Response {
             } else {
                 println!("[LOGIN] Username did not match. Stored: '{}', Provided: '{}'", stored_username, data.username);
             }
+        } else {
+            println!("[LOGIN] FAILED TO PARSE LINE #{}. Skipping.", i);
         }
     }
 
@@ -182,8 +184,24 @@ pub async fn login_user(Json(data): Json<AuthData>) -> Response {
     create_response(StatusCode::UNAUTHORIZED, "Invalid username, password, or room ID")
 }
 
-// --- THIS IS THE CORRECTED PARSING FUNCTION ---
+// --- THIS IS THE FINAL, CORRECTED PARSING FUNCTION ---
 fn parse_user_line(line: &str) -> Option<(&str, &str, &str)> {
-    line.split_once(',')
-        .and_then(|(username, rest)| rest.rsplit_once(',').map(|(pass_hash, room_hash)| (username, pass_hash, room_hash)))
+    // 1. Split the username from the rest of the string
+    let (username, rest) = line.split_once(',')?;
+
+    // 2. The separator isn't just a comma, it's the comma that starts the next hash
+    let separator = ",$argon2id$";
+    
+    // 3. Find the index of this unique separator in the rest of the string
+    if let Some(separator_index) = rest.find(separator) {
+        // 4. The password hash is everything before the separator
+        let pass_hash = &rest[..separator_index];
+        // 5. The room hash is everything after the separator's comma
+        let room_hash = &rest[separator_index + 1..];
+        Some((username, pass_hash, room_hash))
+    } else {
+        // If we can't find the separator, the line is malformed
+        println!("[PARSER] CRITICAL: Could not find the ',$argon2id$' separator in line segment: '{}'", rest);
+        None
+    }
 }
