@@ -43,7 +43,6 @@ pub async fn signup_user(Json(data): Json<AuthData>) -> Response {
     println!("[SIGNUP] Existing users file read, {} bytes", existing_data.len());
 
     for (i, line) in existing_data.lines().enumerate() {
-        println!("[SIGNUP] Checking line {}: {}", i, line);
         if let Some((stored_username, _, _)) = parse_user_line(line) {
             if data.username == stored_username {
                 println!("[SIGNUP] Username '{}' already exists!", data.username);
@@ -52,11 +51,12 @@ pub async fn signup_user(Json(data): Json<AuthData>) -> Response {
         }
     }
 
-    let salt = SaltString::generate(&mut OsRng);
+    // --- FIX: Define argon2 instance here ---
     let argon2 = Argon2::default();
 
-    // Hash password
-    let hashed_password = match argon2.hash_password(data.password.as_bytes(), &salt) {
+    // Hash password with its OWN salt
+    let salt_pass = SaltString::generate(&mut OsRng);
+    let hashed_password = match argon2.hash_password(data.password.as_bytes(), &salt_pass) {
         Ok(h) => {
             println!("[SIGNUP] Successfully hashed password");
             h.to_string()
@@ -67,8 +67,9 @@ pub async fn signup_user(Json(data): Json<AuthData>) -> Response {
         }
     };
 
-    // Hash room ID
-    let hashed_room_id = match argon2.hash_password(data.room_id.as_bytes(), &salt) {
+    // Hash room ID with its OWN, NEW salt
+    let salt_room = SaltString::generate(&mut OsRng);
+    let hashed_room_id = match argon2.hash_password(data.room_id.as_bytes(), &salt_room) {
         Ok(h) => {
             println!("[SIGNUP] Successfully hashed room ID");
             h.to_string()
@@ -123,19 +124,24 @@ pub async fn login_user(Json(data): Json<AuthData>) -> Response {
             if data.username == stored_username {
                 println!("[LOGIN] Username match found for {}", stored_username);
 
-                let pass_hash = PasswordHash::new(stored_password_hash).unwrap();
-                let pass_ok = Argon2::default().verify_password(data.password.as_bytes(), &pass_hash).is_ok();
-                println!("[LOGIN] Password verification: {}", pass_ok);
+                // --- FIX: Replaced .unwrap() with safe error handling ---
+                let is_valid_login = || -> Option<bool> {
+                    let pass_hash = PasswordHash::new(stored_password_hash).ok()?;
+                    let pass_ok = Argon2::default().verify_password(data.password.as_bytes(), &pass_hash).is_ok();
+                    println!("[LOGIN] Password verification: {}", pass_ok);
 
-                let room_hash = PasswordHash::new(stored_room_id_hash).unwrap();
-                let room_ok = Argon2::default().verify_password(data.room_id.as_bytes(), &room_hash).is_ok();
-                println!("[LOGIN] Room ID verification: {}", room_ok);
+                    let room_hash = PasswordHash::new(stored_room_id_hash).ok()?;
+                    let room_ok = Argon2::default().verify_password(data.room_id.as_bytes(), &room_hash).is_ok();
+                    println!("[LOGIN] Room ID verification: {}", room_ok);
+                    
+                    Some(pass_ok && room_ok)
+                }();
 
-                if pass_ok && room_ok {
+                if let Some(true) = is_valid_login {
                     println!("[LOGIN] Login successful for {}", stored_username);
                     return create_response(StatusCode::OK, "Login successful");
                 } else {
-                    println!("[LOGIN] Failed verification for {}", stored_username);
+                    println!("[LOGIN] Failed verification or malformed hash for {}", stored_username);
                 }
             }
         }
