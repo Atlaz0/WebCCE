@@ -12,16 +12,23 @@ pub async fn get_file_tree(
     State(app_state): State<AppState>,
     Path(room_id): Path<String>,
 ) -> Result<Json<Vec<Project>>, StatusCode> {
-    println!("[API] Request for file tree in room: {}", room_id);
+    // --- ADDED DEBUG LOG ---
+    println!("[API] ==> Request received for file tree in room: '{}'", room_id);
+    
     let file_system = app_state.file_system.lock().await;
+
+    // --- ADDED DEBUG LOG ---
+    println!("[API] File system locked. Total rooms available: {}. Looking for '{}'.", file_system.len(), room_id);
 
     match file_system.get(&room_id).cloned() {
         Some(projects) => {
-            println!("[API] Found {} projects for room '{}'.", projects.len(), room_id);
+            // --- ADDED DEBUG LOG ---
+            println!("[API] <== SUCCESS: Found {} projects for room '{}'. Sending JSON response.", projects.len(), room_id);
             Ok(Json(projects))
         }
         None => {
-            println!("[API] No projects found for room '{}'.", room_id);
+            // --- ADDED DEBUG LOG ---
+            println!("[API] <== FAILURE: Room '{}' not found in file system HashMap.", room_id);
             Err(StatusCode::NOT_FOUND)
         }
     }

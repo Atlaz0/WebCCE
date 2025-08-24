@@ -20,11 +20,11 @@ body, html {
 }
 
 #file-manager {
-    flex: 0 0 250px;
-    min-width: 150px;
+    flex: 0 0 250px; 
     background-color: #1e1e1e;
     padding: 10px;
     border-right: 1px solid #444;
+    min-width: 150px;
 }
 
 #file-manager h2 {

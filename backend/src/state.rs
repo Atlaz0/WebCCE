@@ -56,30 +56,30 @@ pub struct AppState {
 
 // Helper function to create some default data so the editor isn't empty.
 pub fn create_initial_data() -> FileSystem {
+    // --- ADDED DEBUG LOG ---
+    println!("[STATE] ==> create_initial_data() called. Initializing in-memory file system.");
+
     let mut fs = HashMap::new();
     
-    // --- Project 1: Demo Project ---
+    // --- Project 1: Demo Website ---
     let html_file = File {
         id: NEXT_FILE_ID.fetch_add(1, Ordering::SeqCst),
         name: "index.html".to_string(),
         content: "<h1>Hello, World!</h1>\n<p>Edit this to see the live preview update.</p>\n<script src=\"script.js\"></script>".to_string(),
     };
-
     let css_file = File {
         id: NEXT_FILE_ID.fetch_add(1, Ordering::SeqCst),
         name: "style.css".to_string(),
         content: "h1 {\n  color: steelblue;\n  font-family: sans-serif;\n}".to_string(),
     };
-
     let js_file = File {
         id: NEXT_FILE_ID.fetch_add(1, Ordering::SeqCst),
         name: "script.js".to_string(),
-        content: "console.log('Hello from the script!');\nalert('This is a test.');".to_string(),
+        content: "console.log('Hello from the script!');".to_string(),
     };
-    
     let demo_project = Project {
         id: 1,
-        name: "Demo Website".to_string(), // Renamed for clarity
+        name: "Demo Website".to_string(),
         files: vec![html_file, css_file, js_file],
     };
 
@@ -89,22 +89,27 @@ pub fn create_initial_data() -> FileSystem {
         name: "README.md".to_string(),
         content: "# Another Project\n\nThis is a simple markdown file.".to_string(),
     };
-
     let data_file = File {
         id: NEXT_FILE_ID.fetch_add(1, Ordering::SeqCst),
         name: "data.json".to_string(),
         content: "{\n  \"key\": \"value\",\n  \"is_test\": true\n}".to_string(),
     };
-    
     let another_project = Project {
         id: 2,
         name: "Another Project".to_string(),
         files: vec![readme_file, data_file],
     };
 
-
     // We'll put everything under a "public_room" for the "Try Now" button.
     fs.insert("public_room".to_string(), vec![demo_project, another_project]);
     
+    // --- ADDED DEBUG LOG ---
+    if let Some(projects) = fs.get("public_room") {
+        println!("[STATE] Inserted {} projects into room: 'public_room'.", projects.len());
+    } else {
+        println!("[STATE] CRITICAL ERROR: Failed to insert or retrieve projects from 'public_room'.");
+    }
+    
+    println!("[STATE] <== Initial data creation complete.");
     Arc::new(Mutex::new(fs))
 }
