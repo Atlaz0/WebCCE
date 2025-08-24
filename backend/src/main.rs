@@ -1,37 +1,22 @@
 use axum::{
-    routing::{get, post},
-    response::Html,
+    extract::Path,
+    routing::get,
     Router,
 };
 use tokio::net::TcpListener;
-use tower_http::cors::{Any, CorsLayer};
 
-mod auth;
-
-async fn index() -> Html<&'static str> {
-    Html("<h1>WebCCE Rust Backend is Running!</h1>")
-}
-
-async fn ping() -> &'static str {
-    "pong"
+async fn get_file_tree_test(Path(room_id): Path<String>) -> String {
+    format!("SUCCESS! You reached the file tree for room: {}", room_id)
 }
 
 #[tokio::main]
 async fn main() {
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
-
     let app = Router::new()
-        .route("/", get(index))
-        .route("/ping", get(ping))
-        .route("/signup", post(auth::signup_user))
-        .route("/login", post(auth::login_user))
-        .layer(cors);
+        .route("/api/file-tree/:room_id", get(get_file_tree_test));
 
     let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
-    println!("Server running on {}", listener.local_addr().unwrap());
+    println!("--- CLEAN DEBUG SERVER RUNNING ---");
+    println!("--- Test with: curl -v http://127.0.0.1:8080/api/file-tree/public_room ---");
 
     axum::serve(listener, app).await.unwrap();
 }
