@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = 'https://your-backend-name.onrender.com'; // <-- IMPORTANT: REPLACE THIS
+    const API_BASE_URL = 'https://api.mp2upnhs.my/'; // <-- IMPORTANT: REPLACE THIS
     const ROOM_ID = 'public_room';
 
     let monacoEditor;
@@ -8,8 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let isUpdatingEditor = false;
     const fileContentCache = new Map();
 
+    // --- DOM Element References ---
+    const fileManager = document.getElementById('file-manager'); // THE FIX IS HERE
     const fileTreeContainer = document.getElementById('file-tree');
     const editorContainer = document.getElementById('editor-container');
+    const previewContainer = document.getElementById('preview-container');
     const previewFrame = document.getElementById('preview-frame');
     const saveButton = document.getElementById('save-button');
     const resizerFmEd = document.getElementById('resizer-fm-ed');
@@ -175,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'html': return 'html';
             case 'css': return 'css';
             case 'js': return 'javascript';
-            case 'json': return 'json';
+            case 'json': 'json';
             case 'md': return 'markdown';
             default: return 'plaintext';
         }
