@@ -8,15 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let isUpdatingEditor = false;
     const fileContentCache = new Map();
 
-    const fileManager = document.getElementById('file-manager');
-    const fileTreeContainer = document.getElementById('file-tree');
-    const rightContent = document.getElementById('right-content'); // For new resizer
-    const editorContainer = document.getElementById('editor-container');
-    const previewContainer = document.getElementById('preview-container');
-    const previewFrame = document.getElementById('preview-frame');
-    const saveButton = document.getElementById('save-button');
-    const resizerFmEd = document.getElementById('resizer-fm-ed');
-    const resizerEdPv = document.getElementById('resizer-ed-pv');
+    const resizerFmEd = document.getElementById("resizer-fm-ed");
+    const resizerEdPv = document.getElementById("resizer-ed-pv");
+    const fileManager = document.getElementById("file-manager");
+    const rightContent = document.getElementById("right-content");
+    const editorContainer = document.getElementById("editor-container");
+    const previewContainer = document.getElementById("preview-container");
 
     require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' }});
     require(['vs/editor/editor.main'], () => {
@@ -222,33 +219,46 @@ document.addEventListener('DOMContentLoaded', () => {
         let x = 0;
         let leftPanelWidth = 0;
         let rightPanelWidth = 0;
+
         const mouseDownHandler = (e) => {
+            e.preventDefault();
             x = e.clientX;
             leftPanelWidth = leftPanel.getBoundingClientRect().width;
             rightPanelWidth = rightPanel.getBoundingClientRect().width;
+
             document.addEventListener('mousemove', mouseMoveHandler);
             document.addEventListener('mouseup', mouseUpHandler);
         };
+
         const mouseMoveHandler = (e) => {
             const dx = e.clientX - x;
             const newLeftWidth = leftPanelWidth + dx;
             const newRightWidth = rightPanelWidth - dx;
+
             if (newLeftWidth > minWidth && newRightWidth > minWidth) {
-                const totalWidth = leftPanelWidth + rightPanelWidth;
+                const totalWidth = leftPanel.parentElement.getBoundingClientRect().width;
+
                 leftPanel.style.flexBasis = `${(newLeftWidth / totalWidth) * 100}%`;
                 rightPanel.style.flexBasis = `${(newRightWidth / totalWidth) * 100}%`;
             }
         };
+
         const mouseUpHandler = () => {
             document.removeEventListener('mousemove', mouseMoveHandler);
             document.removeEventListener('mouseup', mouseUpHandler);
         };
-        resizer.addEventListener('mousedown', mouseDownHandler);
+
+        if (resizer) {
+            resizer.addEventListener('mousedown', mouseDownHandler);
+            resizer.style.cursor = "col-resize";
+        } else {
+            console.error("Resizer element not found:", resizer);
+        }
     }
-    
-    // Correctly target the new nested container
+
     makeResizable(resizerFmEd, fileManager, rightContent);
     makeResizable(resizerEdPv, editorContainer, previewContainer);
+
 
     fetchFileTree();
 });
