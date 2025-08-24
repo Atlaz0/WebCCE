@@ -7,6 +7,7 @@ use axum::{
 use serde::Serialize;
 use crate::state::{AppState, Project};
 
+// Handler for GET /api/file-tree/:room_id
 pub async fn get_file_tree(
     State(app_state): State<AppState>,
     Path(room_id): Path<String>,
@@ -33,6 +34,7 @@ pub struct FileContentResponse {
     content: String,
 }
 
+// Handler for GET /api/file/:file_id
 pub async fn get_file_content(
     State(app_state): State<AppState>,
     Path(file_id): Path<i32>,
@@ -40,6 +42,7 @@ pub async fn get_file_content(
     println!("[API] Request for content of file_id: {}", file_id);
     let file_system = app_state.file_system.lock().await;
 
+    // Iterate through all data to find the file with the matching ID.
     for projects in file_system.values() {
         for project in projects {
             for file in &project.files {

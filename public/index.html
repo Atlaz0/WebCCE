@@ -2,12 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>WebCCE</title>
-    <link rel="stylesheet" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebCCE Collaborative Editor</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="app-container">
+        <!-- Panel 1: File Manager -->
+        <div id="file-manager" class="panel">
+            <h2>Projects</h2>
+            <div id="file-tree"></div>
+        </div>
+
+        <!-- Panel 2: Code Editor -->
+        <div id="editor-container" class="panel">
+            <!-- Monaco Editor will be loaded here by JavaScript -->
+        </div>
+
+        <!-- Panel 3: Live Preview -->
+        <div id="preview-container" class="panel">
+            <iframe id="preview-frame" title="Live Preview"></iframe>
+        </div>
+    </div>
     <a href="./login.html">Login</a>
     <a href="./signup.html">Sign Up</a>
-    
+    <!-- Monaco Editor Loader Script (from CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    <!-- Your Application Script -->
+    <script src="script.js"></script>
 </body>
 </html>

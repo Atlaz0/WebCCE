@@ -1,7 +1,5 @@
-// src/state.rs
-
 use axum::extract::ws::Message;
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::{Arc, atomic::{AtomicI32, Ordering}};
 use tokio::sync::{Mutex, mpsc};
@@ -26,18 +24,19 @@ pub struct Project {
     pub files: Vec<File>,
 }
 
-// Our entire in-memory store. For now, we'll have one global "room".
-// We can easily change the String key to a room_id later if needed.
+// Our entire in-memory store. The key is a room_id (e.g., "public_room").
 pub type FileSystem = Arc<Mutex<HashMap<String, Vec<Project>>>>;
 
 
-// --- WebSocket State (This stays the same) ---
+// --- WebSocket State ---
 
+#[allow(dead_code)] // Suppress warning until all fields are used
 pub struct UserState {
     pub username: String,
     pub sender: mpsc::UnboundedSender<Message>,
 }
 
+#[allow(dead_code)] // Suppress warning until all fields are used
 pub struct Room {
     pub users: HashMap<String, UserState>,
 }
@@ -49,10 +48,9 @@ pub type RoomManager = Arc<Mutex<HashMap<i32, Room>>>;
 // --- Global Application State ---
 
 #[derive(Clone)]
+#[allow(dead_code)] // Suppress warning until all fields are used
 pub struct AppState {
-    // The in-memory file system
     pub file_system: FileSystem,
-    // The manager for live WebSocket rooms
     pub room_manager: RoomManager,
 }
 
