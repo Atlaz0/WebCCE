@@ -72,6 +72,35 @@ body, html {
     font-weight: bold;
     margin-top: 15px;
     font-size: 1.1em;
+    cursor: pointer;
+    position: relative;
+    padding-left: 20px;
+    user-select: none;
+}
+
+.project-name::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    border: 5px solid transparent;
+    border-left-color: #cccccc;
+    transition: transform 0.2s;
+}
+
+.project-name.collapsed::before {
+    transform: translateY(-50%) rotate(0deg);
+}
+
+.project-files {
+    max-height: 1000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+}
+
+.project-files.collapsed {
+    max-height: 0;
 }
 
 .file-name {
@@ -85,6 +114,13 @@ body, html {
 .file-name:hover {
     background-color: #333;
     color: #ffffff;
+}
+
+/* NEW! Styles for the nested right-side container */
+#right-content {
+    flex: 1 1 auto; /* Take up the rest of the space */
+    display: flex; /* Make it a flex container for its children */
+    flex-direction: row; /* Arrange children horizontally */
 }
 
 #editor-container {

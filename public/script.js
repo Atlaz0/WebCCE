@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = 'https://api.mp2upnhs.my'; // <-- IMPORTANT: REPLACE THIS
+    const API_BASE_URL = 'https://your-backend-name.onrender.com'; // <-- IMPORTANT: YOUR URL
     const ROOM_ID = 'public_room';
 
     let monacoEditor;
@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let isUpdatingEditor = false;
     const fileContentCache = new Map();
 
-    // --- DOM Element References ---
-    const fileManager = document.getElementById('file-manager'); // THE FIX IS HERE
+    const fileManager = document.getElementById('file-manager');
     const fileTreeContainer = document.getElementById('file-tree');
+    const rightContent = document.getElementById('right-content'); // For new resizer
     const editorContainer = document.getElementById('editor-container');
     const previewContainer = document.getElementById('preview-container');
     const previewFrame = document.getElementById('preview-frame');
@@ -41,29 +41,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function updatePreview() {
         if (!currentFileId) return;
         const currentFile = findFileInTree(currentFileId);
-        if (!currentFile || getLanguageForFileName(currentFile.name) !== 'html') {
-            previewFrame.srcdoc = `<html><body style='color: #888; font-family: sans-serif; padding: 20px;'>Live preview is only available for HTML files.</body></html>`;
+        if (!currentFile) return;
+        const projectNode = currentFile.projectNode;
+        const projectFiles = Array.from(projectNode.querySelectorAll('.file-name'));
+        const htmlFileDiv = projectFiles.find(div => div.textContent.endsWith('.html'));
+
+        if (!htmlFileDiv) {
+            previewFrame.srcdoc = `<html><body style='color: #888; font-family: sans-serif; padding: 20px;'>No HTML file to preview in this project.</body></html>`;
             return;
         }
 
-        let htmlContent = fileContentCache.get(currentFileId) || '';
-        const cssLinks = htmlContent.match(/<link.*href="(.+?\.css)".*>/g) || [];
-        
+        const htmlFileId = parseInt(htmlFileDiv.dataset.fileId);
+        let htmlContent = fileContentCache.get(htmlFileId) || '';
+        const cssFileDivs = projectFiles.filter(div => div.textContent.endsWith('.css'));
         let cssContent = '';
-        if (cssLinks.length > 0) {
-            const projectNode = currentFile.projectNode;
-            const projectFiles = Array.from(projectNode.querySelectorAll('.file-name'));
-            cssLinks.forEach(link => {
-                const href = link.match(/href="(.+?)"/)[1];
-                const cssFileDiv = projectFiles.find(div => div.textContent === href);
-                if (cssFileDiv) {
-                    const cssFileId = parseInt(cssFileDiv.dataset.fileId);
-                    if (fileContentCache.has(cssFileId)) {
-                        cssContent += fileContentCache.get(cssFileId);
-                    }
-                }
-            });
-        }
+        cssFileDivs.forEach(cssFileDiv => {
+            const cssFileId = parseInt(cssFileDiv.dataset.fileId);
+            if (fileContentCache.has(cssFileId)) {
+                cssContent += fileContentCache.get(cssFileId) + '\n';
+            }
+        });
 
         const finalHtml = `
             <html>
@@ -94,13 +91,16 @@ document.addEventListener('DOMContentLoaded', () => {
             projectDiv.className = 'project-name';
             projectDiv.textContent = project.name;
             projectContainer.appendChild(projectDiv);
+            const filesContainer = document.createElement('div');
+            filesContainer.className = 'project-files';
             project.files.forEach(file => {
                 const fileDiv = document.createElement('div');
                 fileDiv.className = 'file-name';
                 fileDiv.textContent = file.name;
                 fileDiv.dataset.fileId = file.id;
-                projectContainer.appendChild(fileDiv);
+                filesContainer.appendChild(fileDiv);
             });
+            projectContainer.appendChild(filesContainer);
             fileTreeContainer.appendChild(projectContainer);
         });
     }
@@ -129,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         monacoEditor.setValue(content || '');
         const language = getLanguageForFileName(currentFile.name);
         monaco.editor.setModelLanguage(monacoEditor.getModel(), language);
-        
         currentFileId = fileId;
         isUpdatingEditor = false;
         saveButton.disabled = false;
@@ -178,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'html': return 'html';
             case 'css': return 'css';
             case 'js': return 'javascript';
-            case 'json': 'json';
+            case 'json': return 'json';
             case 'md': return 'markdown';
             default: return 'plaintext';
         }
@@ -188,6 +187,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target && event.target.matches('.file-name')) {
             const fileId = parseInt(event.target.dataset.fileId);
             if (fileId) loadFile(fileId);
+        }
+        if (event.target && event.target.matches('.project-name')) {
+            const projectDiv = event.target;
+            const filesContainer = projectDiv.nextElementSibling;
+            projectDiv.classList.toggle('collapsed');
+            filesContainer.classList.toggle('collapsed');
         }
     });
 
@@ -229,8 +234,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const newLeftWidth = leftPanelWidth + dx;
             const newRightWidth = rightPanelWidth - dx;
             if (newLeftWidth > minWidth && newRightWidth > minWidth) {
-                leftPanel.style.flexBasis = `${newLeftWidth}px`;
-                rightPanel.style.flexBasis = `${newRightWidth}px`;
+                const totalWidth = leftPanelWidth + rightPanelWidth;
+                leftPanel.style.flexBasis = `${(newLeftWidth / totalWidth) * 100}%`;
+                rightPanel.style.flexBasis = `${(newRightWidth / totalWidth) * 100}%`;
             }
         };
         const mouseUpHandler = () => {
@@ -240,7 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
         resizer.addEventListener('mousedown', mouseDownHandler);
     }
     
-    makeResizable(resizerFmEd, fileManager, editorContainer);
+    // Correctly target the new nested container
+    makeResizable(resizerFmEd, fileManager, rightContent);
     makeResizable(resizerEdPv, editorContainer, previewContainer);
 
     fetchFileTree();
