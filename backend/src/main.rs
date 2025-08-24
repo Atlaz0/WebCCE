@@ -8,9 +8,11 @@ use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 use tower_http::{
     cors::{Any, CorsLayer},
-    trace::TraceLayer, // NEW! Import the TraceLayer for request logging
+    trace::TraceLayer,
 };
-use tracing_subscriber::{fmt, prelude::*, EnvFilter}; // NEW! Imports for logging setup
+// NEW! Import LevelFilter for the safer logging setup
+use tracing::Level;
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 mod auth;
 mod state;
@@ -21,11 +23,17 @@ use state::{AppState, create_initial_data};
 
 #[tokio::main]
 async fn main() {
-    // NEW! Setup structured logging
+    // --- THIS IS THE CORRECTED LOGGING SETUP ---
+    // Start with a default filter that logs `info` level and above.
+    let filter = EnvFilter::builder()
+        .with_default_directive(Level::INFO.into())
+        .from_env_lossy();
+
     tracing_subscriber::registry()
         .with(fmt::layer())
-        .with(EnvFilter::from_default_env().add_directive("backend=info,tower_http=info".parse().unwrap()))
+        .with(filter) // Use the safely built filter
         .init();
+    // ------------------------------------------
 
     tracing::info!("[main] ==> Application starting up...");
 
@@ -47,7 +55,6 @@ async fn main() {
         .route("/ws/:file_id/:username", get(ws::ws_handler))
         .with_state(app_state)
         .layer(cors)
-        // NEW! Add the request tracing middleware. This is a crucial debugging tool.
         .layer(TraceLayer::new_for_http());
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "8080".to_string());
