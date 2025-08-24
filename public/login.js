@@ -38,3 +38,7 @@ document.getElementById("login_form").addEventListener("submit", async (e) => {
         messageDiv.textContent = "Server not reachable. Try again later.";
     }
 });
+
+document.getElementById("Demo").addEventListener("click", () => {
+    window.location.href = "./index.html";
+});
