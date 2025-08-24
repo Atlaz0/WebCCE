@@ -22,8 +22,6 @@ async fn main() {
         room_manager: Arc::new(Mutex::new(HashMap::new())),
     };
 
-    println!("In-memory state created with demo project.");
-
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods(Any)
@@ -38,7 +36,11 @@ async fn main() {
         .with_state(app_state)
         .layer(cors);
 
-    let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    // CRITICAL FIX: Read the PORT from the environment for Render compatibility
+    let port = std::env::var("PORT").unwrap_or_else(|_| "8080".to_string());
+    let addr = format!("0.0.0.0:{}", port);
+
+    let listener = TcpListener::bind(&addr).await.unwrap();
     println!("Server running on {}", listener.local_addr().unwrap());
 
     axum::serve(listener, app).await.unwrap();

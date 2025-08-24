@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Configuration and State ---
-    const API_BASE_URL = 'https://webcce.onrender.com/'; // <-- IMPORTANT: REPLACE THIS
+    const API_BASE_URL = 'https://your-backend-name.onrender.com'; // <-- IMPORTANT: REPLACE THIS
     const ROOM_ID = 'public_room';
 
     let monacoEditor;
@@ -8,12 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFileId;
     let isUpdatingEditor = false;
 
-    // --- DOM Element References ---
     const fileTreeContainer = document.getElementById('file-tree');
     const editorContainer = document.getElementById('editor-container');
-    const previewFrame = document.getElementById('preview-frame');
+    const previewContainer = document.getElementById('preview-container');
+    const resizerFmEd = document.getElementById('resizer-fm-ed');
+    const resizerEdPv = document.getElementById('resizer-ed-pv');
 
-    // --- Monaco Editor Initialization ---
     require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' }});
     require(['vs/editor/editor.main'], () => {
         monacoEditor = monaco.editor.create(editorContainer, {
@@ -23,22 +22,19 @@ document.addEventListener('DOMContentLoaded', () => {
             automaticLayout: true,
         });
 
-        // Listen for user typing and send changes over WebSocket
         monacoEditor.onDidChangeModelContent(() => {
-            if (isUpdatingEditor) return; // Prevent feedback loop
-            
+            if (isUpdatingEditor) return;
             const content = monacoEditor.getValue();
             updatePreview(content);
-
             if (currentWebSocket && currentWebSocket.readyState === WebSocket.OPEN) {
                 currentWebSocket.send(content);
             }
         });
     });
 
-    // --- Core Functions ---
     function updatePreview(content) {
-        if (currentFileId && getLanguageForFileName(document.querySelector(`[data-file-id="${currentFileId}"]`).textContent) === 'html') {
+        const currentFileElement = document.querySelector(`[data-file-id="${currentFileId}"]`);
+        if (currentFileElement && getLanguageForFileName(currentFileElement.textContent) === 'html') {
              previewFrame.srcdoc = content;
         }
     }
@@ -73,6 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+
     async function loadFile(fileId) {
         if (currentFileId === fileId) return;
 
@@ -105,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const wsUrl = `${wsProtocol}${wsHost}/ws/${fileId}/${username}`;
 
         currentWebSocket = new WebSocket(wsUrl);
-
         currentWebSocket.onopen = () => console.log("WebSocket connection established.");
         currentWebSocket.onmessage = (event) => {
             const receivedContent = event.data;
@@ -134,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Event Listeners ---
     fileTreeContainer.addEventListener('click', (event) => {
         if (event.target && event.target.matches('.file-name')) {
             const fileId = event.target.dataset.fileId;
@@ -142,29 +138,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Draggable Resizer Logic ---
-    const resizerFmEd = document.getElementById('resizer-fm-ed');
-    const resizerEdPv = document.getElementById('resizer-ed-pv');
-    const fileManager = document.getElementById('file-manager');
+    // --- NEW AND IMPROVED RESIZER LOGIC ---
+    function makeResizable(resizer, leftPanel, rightPanel) {
+        const minWidth = 100; // Minimum panel width in pixels
 
-    function makeResizable(resizer, leftPanel) {
         let x = 0;
-        let leftWidth = 0;
+        let leftPanelWidth = 0;
+        let rightPanelWidth = 0;
 
         const mouseDownHandler = (e) => {
             x = e.clientX;
-            leftWidth = leftPanel.getBoundingClientRect().width;
+            leftPanelWidth = leftPanel.getBoundingClientRect().width;
+            rightPanelWidth = rightPanel.getBoundingClientRect().width;
+
             document.addEventListener('mousemove', mouseMoveHandler);
             document.addEventListener('mouseup', mouseUpHandler);
         };
 
         const mouseMoveHandler = (e) => {
             const dx = e.clientX - x;
-            const newLeftWidth = leftWidth + dx;
-            leftPanel.style.flex = `0 0 ${newLeftWidth}px`;
+            const newLeftWidth = leftPanelWidth + dx;
+            const newRightWidth = rightPanelWidth - dx;
+
+            if (newLeftWidth > minWidth && newRightWidth > minWidth) {
+                // Adjust the flex-basis of both panels to make the resizing local
+                leftPanel.style.flexBasis = `${newLeftWidth}px`;
+                rightPanel.style.flexBasis = `${newRightWidth}px`;
+            }
         };
 
         const mouseUpHandler = () => {
+            // This is the fix for the "stuck on hold" bug
             document.removeEventListener('mousemove', mouseMoveHandler);
             document.removeEventListener('mouseup', mouseUpHandler);
         };
@@ -172,9 +176,8 @@ document.addEventListener('DOMContentLoaded', () => {
         resizer.addEventListener('mousedown', mouseDownHandler);
     }
     
-    makeResizable(resizerFmEd, fileManager);
-    makeResizable(resizerEdPv, editorContainer);
+    makeResizable(resizerFmEd, fileTreeContainer.parentElement, editorContainer);
+    makeResizable(resizerEdPv, editorContainer, previewContainer);
 
-    // --- Initial Load ---
     fetchFileTree();
 });
