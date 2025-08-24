@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = 'https://your-backend-name.onrender.com'; // <-- IMPORTANT: YOUR URL
+    const API_BASE_URL = 'https://api.mp2upnhs.my'; // <-- IMPORTANT: YOUR URL
     const ROOM_ID = 'public_room';
 
     let monacoEditor;
