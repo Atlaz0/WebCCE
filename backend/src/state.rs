@@ -26,7 +26,6 @@ pub struct Project {
 }
 
 pub type FileSystem = Arc<Mutex<HashMap<String, Vec<Project>>>>;
-static NEXT_FILE_ID: AtomicI32 = AtomicI32::new(1);
 
 
 #[allow(dead_code)]

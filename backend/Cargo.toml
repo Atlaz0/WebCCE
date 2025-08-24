@@ -15,4 +15,4 @@ argon2 = { version = "0.5", features = ["rand"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
 futures = "0.3"
 tracing = "0.1"                 # NEW! Add this line
-tracing-subscriber = "0.3" 
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
