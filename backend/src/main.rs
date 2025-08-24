@@ -10,7 +10,6 @@ use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
 };
-// NEW! Import LevelFilter for the safer logging setup
 use tracing::Level;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
@@ -23,17 +22,14 @@ use state::{AppState, create_initial_data};
 
 #[tokio::main]
 async fn main() {
-    // --- THIS IS THE CORRECTED LOGGING SETUP ---
-    // Start with a default filter that logs `info` level and above.
     let filter = EnvFilter::builder()
         .with_default_directive(Level::INFO.into())
         .from_env_lossy();
 
     tracing_subscriber::registry()
         .with(fmt::layer())
-        .with(filter) // Use the safely built filter
+        .with(filter)
         .init();
-    // ------------------------------------------
 
     tracing::info!("[main] ==> Application starting up...");
 
@@ -52,6 +48,7 @@ async fn main() {
         .route("/login", post(auth::login_user))
         .route("/api/file-tree/:room_id", get(files::get_file_tree))
         .route("/api/file/:file_id", get(files::get_file_content))
+        .route("/api/file/save", post(files::save_file_content)) // NEW! The save route
         .route("/ws/:file_id/:username", get(ws::ws_handler))
         .with_state(app_state)
         .layer(cors)

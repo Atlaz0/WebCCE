@@ -4,10 +4,18 @@ use axum::{
     response::Json,
     response::{IntoResponse, Response},
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use crate::state::{AppState, Project};
-use tracing::info; // NEW!
+use tracing::info;
 
+// A struct for the incoming save request
+#[derive(Deserialize)]
+pub struct SaveFileRequest {
+    id: i32,
+    content: String,
+}
+
+// A struct for the file content API response
 #[derive(Serialize)]
 pub struct FileContentResponse {
     id: i32,
@@ -15,15 +23,13 @@ pub struct FileContentResponse {
     content: String,
 }
 
+// Handler for getting the file tree
 pub async fn get_file_tree(
     State(app_state): State<AppState>,
     Path(room_id): Path<String>,
 ) -> Result<Json<Vec<Project>>, StatusCode> {
     info!("[files] ==> API call to get_file_tree for room: '{}'", room_id);
-    
     let file_system = app_state.file_system.lock().await;
-
-    // NEW! Log the current state of the file system at the time of the request.
     let keys: Vec<_> = file_system.keys().cloned().collect();
     info!("[files] File system locked. Current rooms are: {:?}", keys);
 
@@ -39,6 +45,7 @@ pub async fn get_file_tree(
     }
 }
 
+// Handler for getting a single file's content
 pub async fn get_file_content(
     State(app_state): State<AppState>,
     Path(file_id): Path<i32>,
@@ -61,7 +68,30 @@ pub async fn get_file_content(
             }
         }
     }
-
     info!("[files] <== FAILURE: File with id {} not found.", file_id);
     (StatusCode::NOT_FOUND, "File not found").into_response()
+} // <-- Missing brace was added here
+
+// Handler for saving a file's content
+pub async fn save_file_content(
+    State(app_state): State<AppState>,
+    Json(payload): Json<SaveFileRequest>,
+) -> StatusCode {
+    info!("[files] ==> API call to save_file_content for file_id: {}", payload.id);
+    let mut file_system = app_state.file_system.lock().await;
+
+    for projects in file_system.values_mut() {
+        for project in projects {
+            for file in &mut project.files {
+                if file.id == payload.id {
+                    file.content = payload.content;
+                    info!("[files] <== SUCCESS: Saved content for file '{}'.", file.name);
+                    return StatusCode::OK;
+                }
+            }
+        }
+    }
+
+    info!("[files] <== FAILURE: Could not find file_id {} to save.", payload.id); // Fixed variable
+    StatusCode::NOT_FOUND // Fixed return type
 }

@@ -20,22 +20,58 @@ body, html {
 }
 
 #file-manager {
-    flex: 0 0 250px; 
-    background-color: #1e1e1e;
-    padding: 10px;
-    border-right: 1px solid #444;
+    flex: 0 0 250px;
     min-width: 150px;
+    background-color: #1e1e1e;
+    border-right: 1px solid #444;
+}
+
+.file-manager-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #444;
+    padding: 10px;
 }
 
 #file-manager h2 {
-    margin-top: 0;
-    border-bottom: 1px solid #444;
-    padding-bottom: 10px;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+#save-button {
+    background-color: #007acc;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#save-button:hover:not(:disabled) {
+    background-color: #0098e6;
+}
+
+#save-button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+#file-tree {
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.project-container {
+    margin-bottom: 10px;
 }
 
 .project-name {
     font-weight: bold;
     margin-top: 15px;
+    font-size: 1.1em;
 }
 
 .file-name {

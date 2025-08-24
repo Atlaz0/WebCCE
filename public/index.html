@@ -10,7 +10,10 @@
     <div class="app-container">
         <!-- Panel 1: File Manager -->
         <div id="file-manager" class="panel">
-            <h2>Projects</h2>
+            <div class="file-manager-header">
+                <h2>Projects</h2>
+                <button id="save-button" disabled>Save</button>
+            </div>
             <div id="file-tree"></div>
         </div>
 
@@ -30,8 +33,7 @@
             <iframe id="preview-frame" title="Live Preview"></iframe>
         </div>
     </div>
-    <a href="./login.html">Login</a>
-    <a href="./signup.html">Sign Up</a>
+
     <!-- Monaco Editor Loader Script (from CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
     <!-- Your Application Script -->

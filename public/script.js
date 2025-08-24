@@ -1,26 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Configuration and State ---
-    const API_BASE_URL = 'https://api.mp2upnhs.my'; // Your correct URL
+    const API_BASE_URL = 'https://your-backend-name.onrender.com'; // <-- IMPORTANT: REPLACE THIS
     const ROOM_ID = 'public_room';
 
     let monacoEditor;
     let currentWebSocket;
     let currentFileId;
     let isUpdatingEditor = false;
+    const fileContentCache = new Map();
 
-    // --- DOM Element References (THIS SECTION IS NOW CORRECT) ---
     const fileTreeContainer = document.getElementById('file-tree');
     const editorContainer = document.getElementById('editor-container');
-    const previewContainer = document.getElementById('preview-container'); // THE FIX IS HERE
     const previewFrame = document.getElementById('preview-frame');
+    const saveButton = document.getElementById('save-button');
     const resizerFmEd = document.getElementById('resizer-fm-ed');
     const resizerEdPv = document.getElementById('resizer-ed-pv');
 
-    // --- Monaco Editor Initialization ---
     require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' }});
     require(['vs/editor/editor.main'], () => {
         monacoEditor = monaco.editor.create(editorContainer, {
-            value: `// Select a file from the list to begin editing`,
+            value: `// Select a file to begin`,
             language: 'plaintext',
             theme: 'vs-dark',
             automaticLayout: true,
@@ -29,21 +27,47 @@ document.addEventListener('DOMContentLoaded', () => {
         monacoEditor.onDidChangeModelContent(() => {
             if (isUpdatingEditor) return;
             const content = monacoEditor.getValue();
-            updatePreview(content);
+            fileContentCache.set(currentFileId, content);
+            updatePreview();
             if (currentWebSocket && currentWebSocket.readyState === WebSocket.OPEN) {
                 currentWebSocket.send(content);
             }
         });
     });
 
-    // --- Core Functions ---
-    function updatePreview(content) {
-        const currentFileElement = document.querySelector(`[data-file-id="${currentFileId}"]`);
-        if (currentFileElement && getLanguageForFileName(currentFileElement.textContent) === 'html') {
-             previewFrame.srcdoc = content;
-        } else {
-             previewFrame.srcdoc = `<html><body style='color: #888; font-family: sans-serif; padding: 20px;'>Live preview is only available for HTML files.</body></html>`;
+    function updatePreview() {
+        if (!currentFileId) return;
+        const currentFile = findFileInTree(currentFileId);
+        if (!currentFile || getLanguageForFileName(currentFile.name) !== 'html') {
+            previewFrame.srcdoc = `<html><body style='color: #888; font-family: sans-serif; padding: 20px;'>Live preview is only available for HTML files.</body></html>`;
+            return;
         }
+
+        let htmlContent = fileContentCache.get(currentFileId) || '';
+        const cssLinks = htmlContent.match(/<link.*href="(.+?\.css)".*>/g) || [];
+        
+        let cssContent = '';
+        if (cssLinks.length > 0) {
+            const projectNode = currentFile.projectNode;
+            const projectFiles = Array.from(projectNode.querySelectorAll('.file-name'));
+            cssLinks.forEach(link => {
+                const href = link.match(/href="(.+?)"/)[1];
+                const cssFileDiv = projectFiles.find(div => div.textContent === href);
+                if (cssFileDiv) {
+                    const cssFileId = parseInt(cssFileDiv.dataset.fileId);
+                    if (fileContentCache.has(cssFileId)) {
+                        cssContent += fileContentCache.get(cssFileId);
+                    }
+                }
+            });
+        }
+
+        const finalHtml = `
+            <html>
+                <head><style>${cssContent}</style></head>
+                <body>${htmlContent}</body>
+            </html>`;
+        previewFrame.srcdoc = finalHtml;
     }
 
     async function fetchFileTree() {
@@ -61,38 +85,64 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderFileTree(projects) {
         fileTreeContainer.innerHTML = '';
         projects.forEach(project => {
+            const projectContainer = document.createElement('div');
+            projectContainer.className = 'project-container';
             const projectDiv = document.createElement('div');
             projectDiv.className = 'project-name';
             projectDiv.textContent = project.name;
-            fileTreeContainer.appendChild(projectDiv);
-
+            projectContainer.appendChild(projectDiv);
             project.files.forEach(file => {
                 const fileDiv = document.createElement('div');
                 fileDiv.className = 'file-name';
                 fileDiv.textContent = file.name;
                 fileDiv.dataset.fileId = file.id;
-                fileTreeContainer.appendChild(fileDiv);
+                projectContainer.appendChild(fileDiv);
             });
+            fileTreeContainer.appendChild(projectContainer);
         });
     }
 
     async function loadFile(fileId) {
         if (currentFileId === fileId) return;
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/file/${fileId}`);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const fileContent = await response.json();
-            isUpdatingEditor = true;
-            monacoEditor.setValue(fileContent.content);
-            isUpdatingEditor = false;
-            const language = getLanguageForFileName(fileContent.name);
-            monaco.editor.setModelLanguage(monacoEditor.getModel(), language);
-            updatePreview(fileContent.content);
-            currentFileId = fileId;
-            connectWebSocket(fileId);
-        } catch (error) {
-            console.error("Failed to load file content:", error);
+        saveButton.disabled = true;
+        isUpdatingEditor = true;
+
+        const currentFile = findFileInTree(fileId);
+        const projectNode = currentFile.projectNode;
+        if (!projectNode.dataset.loaded) {
+            const projectFiles = Array.from(projectNode.querySelectorAll('.file-name'));
+            for (const fileDiv of projectFiles) {
+                const id = parseInt(fileDiv.dataset.fileId);
+                if (!fileContentCache.has(id)) {
+                    const response = await fetch(`${API_BASE_URL}/api/file/${id}`);
+                    const file = await response.json();
+                    fileContentCache.set(id, file.content);
+                }
+            }
+            projectNode.dataset.loaded = 'true';
         }
+
+        const content = fileContentCache.get(fileId);
+        monacoEditor.setValue(content || '');
+        const language = getLanguageForFileName(currentFile.name);
+        monaco.editor.setModelLanguage(monacoEditor.getModel(), language);
+        
+        currentFileId = fileId;
+        isUpdatingEditor = false;
+        saveButton.disabled = false;
+        
+        updatePreview();
+        connectWebSocket(fileId);
+    }
+    
+    function findFileInTree(fileId) {
+        const fileDiv = document.querySelector(`[data-file-id="${fileId}"]`);
+        if (!fileDiv) return null;
+        return {
+            id: fileId,
+            name: fileDiv.textContent,
+            projectNode: fileDiv.closest('.project-container')
+        };
     }
 
     function connectWebSocket(fileId) {
@@ -108,10 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (monacoEditor.getValue() !== receivedContent) {
                 isUpdatingEditor = true;
                 const currentPosition = monacoEditor.getPosition();
+                fileContentCache.set(currentFileId, receivedContent);
                 monacoEditor.setValue(receivedContent);
                 monacoEditor.setPosition(currentPosition);
                 isUpdatingEditor = false;
-                updatePreview(receivedContent);
+                updatePreview();
             }
         };
         currentWebSocket.onerror = (error) => console.error("WebSocket error:", error);
@@ -132,8 +183,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fileTreeContainer.addEventListener('click', (event) => {
         if (event.target && event.target.matches('.file-name')) {
-            const fileId = event.target.dataset.fileId;
+            const fileId = parseInt(event.target.dataset.fileId);
             if (fileId) loadFile(fileId);
+        }
+    });
+
+    saveButton.addEventListener('click', async () => {
+        if (!currentFileId) return;
+        saveButton.textContent = 'Saving...';
+        const content = fileContentCache.get(currentFileId);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/file/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: currentFileId, content: content }),
+            });
+            if (response.ok) {
+                saveButton.textContent = 'Saved!';
+                setTimeout(() => { saveButton.textContent = 'Save'; }, 2000);
+            } else { throw new Error('Save failed'); }
+        } catch (error) {
+            console.error("Failed to save file:", error);
+            saveButton.textContent = 'Error!';
+            setTimeout(() => { saveButton.textContent = 'Save'; }, 2000);
         }
     });
 
@@ -165,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resizer.addEventListener('mousedown', mouseDownHandler);
     }
     
-    makeResizable(resizerFmEd, fileTreeContainer.parentElement, editorContainer);
+    makeResizable(resizerFmEd, fileManager, editorContainer);
     makeResizable(resizerEdPv, editorContainer, previewContainer);
 
     fetchFileTree();
