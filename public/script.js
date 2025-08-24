@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = 'https://api.mp2upnhs.my'; // <-- IMPORTANT: YOUR URL
+    const API_BASE_URL = 'https://api.mp2upnhs.my'; // Your correct URL
     const ROOM_ID = 'public_room';
 
     let monacoEditor;
@@ -8,12 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let isUpdatingEditor = false;
     const fileContentCache = new Map();
 
-    const resizerFmEd = document.getElementById("resizer-fm-ed");
-    const resizerEdPv = document.getElementById("resizer-ed-pv");
+    // --- DOM Element References (THIS SECTION IS NOW CORRECT) ---
     const fileManager = document.getElementById("file-manager");
+    const fileTreeContainer = document.getElementById("file-tree"); // THE FIX IS HERE
     const rightContent = document.getElementById("right-content");
     const editorContainer = document.getElementById("editor-container");
     const previewContainer = document.getElementById("preview-container");
+    const previewFrame = document.getElementById("preview-frame"); // THE FIX IS HERE
+    const saveButton = document.getElementById("save-button"); // THE FIX IS HERE
+    const resizerFmEd = document.getElementById("resizer-fm-ed");
+    const resizerEdPv = document.getElementById("resizer-ed-pv");
+
 
     require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' }});
     require(['vs/editor/editor.main'], () => {
@@ -225,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
             x = e.clientX;
             leftPanelWidth = leftPanel.getBoundingClientRect().width;
             rightPanelWidth = rightPanel.getBoundingClientRect().width;
-
             document.addEventListener('mousemove', mouseMoveHandler);
             document.addEventListener('mouseup', mouseUpHandler);
         };
@@ -237,7 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (newLeftWidth > minWidth && newRightWidth > minWidth) {
                 const totalWidth = leftPanel.parentElement.getBoundingClientRect().width;
-
                 leftPanel.style.flexBasis = `${(newLeftWidth / totalWidth) * 100}%`;
                 rightPanel.style.flexBasis = `${(newRightWidth / totalWidth) * 100}%`;
             }
@@ -250,15 +253,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (resizer) {
             resizer.addEventListener('mousedown', mouseDownHandler);
-            resizer.style.cursor = "col-resize";
         } else {
-            console.error("Resizer element not found:", resizer);
+            console.error("Resizer element not found for panels:", leftPanel, rightPanel);
         }
     }
 
     makeResizable(resizerFmEd, fileManager, rightContent);
     makeResizable(resizerEdPv, editorContainer, previewContainer);
-
 
     fetchFileTree();
 });
