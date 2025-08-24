@@ -1,3 +1,18 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #2c2c2c;
+    color: #f0f0f0;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
 .panel {
     display: flex;
     flex-direction: column;
@@ -5,22 +20,44 @@
 }
 
 #file-manager {
-    flex: 0 0 250px; 
+    flex: 0 0 250px;
+    min-width: 150px;
     background-color: #1e1e1e;
     padding: 10px;
     border-right: 1px solid #444;
+}
 
-    min-width: 150px;
-    resize: horizontal;
+#file-manager h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+.project-name {
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.file-name {
+    padding-left: 20px;
+    cursor: pointer;
+    line-height: 1.8;
+    color: #cccccc;
+    white-space: nowrap;
+}
+
+.file-name:hover {
+    background-color: #333;
+    color: #ffffff;
 }
 
 #editor-container {
-    flex: 1; 
+    flex: 1 1 50%;
     min-width: 200px;
 }
 
 #preview-container {
-    flex: 1; 
+    flex: 1 1 50%;
     border-left: 1px solid #444;
     min-width: 200px;
 }
@@ -37,11 +74,6 @@
     cursor: col-resize;
     flex: 0 0 5px;
     z-index: 10;
-    -moz-background-clip: padding;
-    -webkit-background-clip: padding;
-    background-clip: padding-box;
-    border-left: 1px solid #1e1e1e;
-    border-right: 1px solid #1e1e1e;
 }
 
 .resizer:hover {
