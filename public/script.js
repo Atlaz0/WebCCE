@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const pingEl = document.querySelector(".ping");
+    const res = fetch('https://api.mp2upnhs.my');
     if (res.status === 200) {
             pingEl.style.backgroundColor = "green";
         }
