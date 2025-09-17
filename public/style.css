@@ -8,6 +8,16 @@ body, html {
     overflow: hidden;
 }
 
+.file-manager-header {
+    display: flex;
+    flex-direction: column;
+}
+
+.b+i {
+    display: flex;
+    flex-direction: row;
+}
+
 .ping {
     width: 10px;
     height: 10px;

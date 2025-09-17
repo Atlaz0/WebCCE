@@ -2,7 +2,7 @@ document.getElementById("PingBackend").addEventListener("click", async () => {
     const pingEl = document.querySelector(".ping");
 
     try {
-        const res = await fetch("api.mp2upnhs.my/");
+        const res = await fetch('https://api.mp2upnhs.my');
         if (res.status === 200) {
             pingEl.style.backgroundColor = "green";
         } else {
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' }});
     require(['vs/editor/editor.main'], () => {
         monacoEditor = monaco.editor.create(editorContainer, {
-            value: `// Select a file to begin, if you don't see files check if backend is up`,
+            value: `// Select a file to begin \n if you don't see files check if backend is up`,
             language: 'plaintext',
             theme: 'vs-dark',
             automaticLayout: true,
