@@ -16,8 +16,6 @@ pub async fn ws_handler(
     info!("[ws] ==> New WebSocket connection request for file_id: {} from user: '{}'", file_id, username);
     ws.on_upgrade(move |socket| handle_socket(socket, state, file_id, username))
 }
-// ... rest of the file is the same, but you can change println! to info! if you like ...
-// ... handle_socket function here ...
 async fn handle_socket(socket: WebSocket, state: AppState, file_id: i32, username: String) {
     let (mut socket_sender, mut socket_receiver) = socket.split();
     let (user_sender, mut user_receiver) = mpsc::unbounded_channel::<Message>();

@@ -8,38 +8,33 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Panel 1: File Manager -->
         <div id="file-manager" class="panel">
             <div class="file-manager-header">
                 <h2>Projects</h2>
                 <button id="save-button" disabled>Save</button>
+                <h3>Backend status</h3>
+                <button id="PingBackend"></button>
+                <div class="ping"></div>
             </div>
             <div id="file-tree"></div>
         </div>
 
-        <!-- Resizer Handle -->
         <div class="resizer" id="resizer-fm-ed"></div>
 
-        <!-- NEW! Nested container for the editor and preview -->
         <div id="right-content" class="panel">
-            <!-- Panel 2: Code Editor -->
+            
             <div id="editor-container" class="panel">
-                <!-- Monaco Editor will be loaded here -->
             </div>
 
-            <!-- Resizer Handle -->
             <div class="resizer" id="resizer-ed-pv"></div>
 
-            <!-- Panel 3: Live Preview -->
             <div id="preview-container" class="panel">
                 <iframe id="preview-frame" title="Live Preview"></iframe>
             </div>
         </div>
     </div>
 
-    <!-- Monaco Editor Loader Script (from CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
-    <!-- Your Application Script -->
     <script src="script.js"></script>
 </body>
 </html>

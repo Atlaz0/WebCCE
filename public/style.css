@@ -8,6 +8,13 @@ body, html {
     overflow: hidden;
 }
 
+.ping {
+    width: 10px;
+    height: 10px;
+    background: red;
+    border-radius: 20%;
+    display: inline-block;
+}
 .app-container {
     display: flex;
     height: 100vh;

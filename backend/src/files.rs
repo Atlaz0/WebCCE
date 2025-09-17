@@ -70,9 +70,8 @@ pub async fn get_file_content(
     }
     info!("[files] <== FAILURE: File with id {} not found.", file_id);
     (StatusCode::NOT_FOUND, "File not found").into_response()
-} // <-- Missing brace was added here
+}
 
-// Handler for saving a file's content
 pub async fn save_file_content(
     State(app_state): State<AppState>,
     Json(payload): Json<SaveFileRequest>,
@@ -92,6 +91,6 @@ pub async fn save_file_content(
         }
     }
 
-    info!("[files] <== FAILURE: Could not find file_id {} to save.", payload.id); // Fixed variable
-    StatusCode::NOT_FOUND // Fixed return type
+    info!("[files] <== FAILURE: Could not find file_id {} to save.", payload.id);
+    StatusCode::NOT_FOUND
 }

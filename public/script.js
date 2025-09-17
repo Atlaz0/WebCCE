@@ -1,5 +1,20 @@
+document.getElementById("PingBackend").addEventListener("click", async () => {
+    const pingEl = document.querySelector(".ping");
+
+    try {
+        const res = await fetch("api.mp2upnhs.my/");
+        if (res.status === 200) {
+            pingEl.style.backgroundColor = "green";
+        } else {
+            pingEl.style.backgroundColor = "red";
+        }
+    } catch (err) {
+        pingEl.style.backgroundColor = "red";
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = 'https://api.mp2upnhs.my'; // Your correct URL
+    const API_BASE_URL = 'https://api.mp2upnhs.my';
     const ROOM_ID = 'public_room';
 
     let monacoEditor;
@@ -8,14 +23,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let isUpdatingEditor = false;
     const fileContentCache = new Map();
 
-    // --- DOM Element References (THIS SECTION IS NOW CORRECT) ---
     const fileManager = document.getElementById("file-manager");
-    const fileTreeContainer = document.getElementById("file-tree"); // THE FIX IS HERE
+    const fileTreeContainer = document.getElementById("file-tree");
     const rightContent = document.getElementById("right-content");
     const editorContainer = document.getElementById("editor-container");
     const previewContainer = document.getElementById("preview-container");
-    const previewFrame = document.getElementById("preview-frame"); // THE FIX IS HERE
-    const saveButton = document.getElementById("save-button"); // THE FIX IS HERE
+    const previewFrame = document.getElementById("preview-frame");
+    const saveButton = document.getElementById("save-button");
     const resizerFmEd = document.getElementById("resizer-fm-ed");
     const resizerEdPv = document.getElementById("resizer-ed-pv");
 
@@ -23,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' }});
     require(['vs/editor/editor.main'], () => {
         monacoEditor = monaco.editor.create(editorContainer, {
-            value: `// Select a file to begin`,
+            value: `// Select a file to begin, if you don't see files check if backend is up`,
             language: 'plaintext',
             theme: 'vs-dark',
             automaticLayout: true,

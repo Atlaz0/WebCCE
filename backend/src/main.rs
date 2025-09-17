@@ -20,6 +20,11 @@ mod ws;
 
 use state::{AppState, create_initial_data};
 
+async fn root() -> impl IntoResponse {
+    println!("Backend is working");
+    "Backend is working"                   
+}
+
 #[tokio::main]
 async fn main() {
     let filter = EnvFilter::builder()
@@ -44,11 +49,12 @@ async fn main() {
         .allow_headers(Any);
 
     let app = Router::new()
+        .route("/", get(root))
         .route("/signup", post(auth::signup_user))
         .route("/login", post(auth::login_user))
         .route("/api/file-tree/:room_id", get(files::get_file_tree))
         .route("/api/file/:file_id", get(files::get_file_content))
-        .route("/api/file/save", post(files::save_file_content)) // NEW! The save route
+        .route("/api/file/save", post(files::save_file_content))
         .route("/ws/:file_id/:username", get(ws::ws_handler))
         .with_state(app_state)
         .layer(cors)
