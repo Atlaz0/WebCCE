@@ -1,9 +1,17 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const pingEl = document.querySelector(".ping");
-    const res = fetch('https://api.mp2upnhs.my');
-    if (res.status === 200) {
+
+    try {
+        const res = await fetch('https://api.mp2upnhs.my');
+        if (res.status === 200) {
             pingEl.style.backgroundColor = "green";
+        } else {
+            pingEl.style.backgroundColor = "red";
         }
+    } catch (err) {
+        pingEl.style.backgroundColor = "red";
+        console.error('Ping failed:', err);
+    }
 });
 
 document.getElementById("PingBackend").addEventListener("click", async () => {
