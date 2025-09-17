@@ -1,3 +1,10 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const pingEl = document.querySelector(".ping");
+    if (res.status === 200) {
+            pingEl.style.backgroundColor = "green";
+        }
+});
+
 document.getElementById("PingBackend").addEventListener("click", async () => {
     const pingEl = document.querySelector(".ping");
 
