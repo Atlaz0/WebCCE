@@ -11,15 +11,19 @@ body, html {
 .file-manager-header {
     display: flex;
     flex-direction: column;
+    justify-content: center;
 }
 
 .b+i {
     display: flex;
     flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
 }
 
 .pingbutton {
-    padding: 5px 7px;
+    padding: 15px 19px;
 }
 
 .ping {
