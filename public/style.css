@@ -18,11 +18,15 @@ body, html {
     flex-direction: row;
 }
 
+.pingbutton {
+    padding: 5px 7px;
+}
+
 .ping {
-    width: 10px;
-    height: 10px;
+    width: 15px;
+    height: 15px;
     background: red;
-    border-radius: 20%;
+    border-radius: 40%;
     display: inline-block;
 }
 .app-container {
