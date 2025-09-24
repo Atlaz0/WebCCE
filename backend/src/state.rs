@@ -59,7 +59,7 @@ pub fn create_initial_data() -> FileSystem {
     let js_file = File { id: NEXT_FILE_ID.fetch_add(1, Ordering::SeqCst), name: "script.js".to_string(), content: "console.log('hello')".to_string() };
     let demo_project = Project { id: 1, name: "Demo Website".to_string(), files: vec![html_file, css_file, js_file] };
     
-    let readme_file = File { id: NEXT_FILE_ID.fetch_add(1, Ordering::SeqCst), name: "python.py".to_string(), content: "# PYTHON".to_string() };
+    let py_file = File { id: NEXT_FILE_ID.fetch_add(1, Ordering::SeqCst), name: "python.py".to_string(), content: "# PYTHON".to_string() };
     let another_project = Project { id: 2, name: "Another Project".to_string(), files: vec![py_file] };
 
     fs.insert("public_room".to_string(), vec![demo_project, another_project]);
