@@ -211,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'js': return 'javascript';
             case 'json': return 'json';
             case 'md': return 'markdown';
+            case 'py': return 'python';
             default: return 'plaintext';
         }
     }
