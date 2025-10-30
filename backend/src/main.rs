@@ -13,6 +13,7 @@ use tower_http::{
 };
 use tracing::Level;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+use std::env;
 
 mod auth;
 mod state;
