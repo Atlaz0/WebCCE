@@ -63,7 +63,7 @@ async fn main() {
         .route("/api/file/:file_id", get(files::get_file_content))
         .route("/api/file/save", post(files::save_file_content))
         .route("/ws/:file_id/:username", get(ws::ws_handler))
-        .route("/api/chat", post(chat::handle_chat))
+        .route("/chat", post(chat::handle_chat))
         .with_state(app_state)
         .layer(cors)
         .layer(TraceLayer::new_for_http());
