@@ -73,7 +73,8 @@ function renderMessages() {
       div.appendChild(meta);
     }
     const text = document.createElement('div');
-    text.textContent = m.content;
+    // allow simple line breaks preserved
+    text.innerText = m.content;
     div.appendChild(text);
     messagesEl.appendChild(div);
   });
@@ -91,36 +92,58 @@ async function sendMessage(text) {
   renderMessages();
 
   // typing indicator
-  const typingMsg = { role: 'system', content: '...', meta: 'Assistant is typing' };
+  const typingMsg = { role: 'system', content: 'Assistant is typing...', meta: '...' };
   conv.messages.push(typingMsg);
   renderMessages();
 
   try {
-    // POST to your server endpoint which should add the API key and call OpenAI.
-    // Request body format:
-    // { conversationId: string, messages: [{role, content}, ...] }
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         conversationId: conv.id,
-        messages: conv.messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content }))
+        messages: conv.messages
+          .filter(m => m.role !== 'system')
+          .map(m => ({ role: m.role, content: m.content }))
       })
     });
 
-    if (!resp.ok) throw new Error(`Network error: ${resp.status}`);
+    // remove typing
+    conv.messages = conv.messages.filter(m => m.role !== 'system');
+    if (!resp.ok) {
+      // try to get text body for debugging and show to user
+      const txt = await resp.text().catch(() => `HTTP ${resp.status}`);
+      conv.messages.push({ role: 'assistant', content: `(openai error ${resp.status}): ${txt}`, meta: new Date().toLocaleString() });
+      saveStore();
+      renderMessages();
+      return;
+    }
 
-    // expected JSON: { reply: 'text...' }
-    const data = await resp.json();
-    conv.messages.pop(); // remove typing
-    conv.messages.push({ role: 'assistant', content: data.reply || '(no reply)', meta: new Date().toLocaleString() });
+    // ensure response is JSON and has reply
+    const ct = resp.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      const txt = await resp.text().catch(() => '(no body)');
+      conv.messages.push({ role: 'assistant', content: `(invalid content-type) ${txt}`, meta: new Date().toLocaleString() });
+      saveStore();
+      renderMessages();
+      return;
+    }
+
+    const data = await resp.json().catch(e => ({ error: String(e) }));
+    if (data && typeof data.reply === 'string') {
+      conv.messages.push({ role: 'assistant', content: data.reply, meta: new Date().toLocaleString() });
+    } else if (data && data.error) {
+      conv.messages.push({ role: 'assistant', content: `(error parsing json) ${data.error}`, meta: new Date().toLocaleString() });
+    } else {
+      conv.messages.push({ role: 'assistant', content: '(no reply field in response)', meta: new Date().toLocaleString() });
+    }
 
   } catch (err) {
-    // fallback for offline/demo: simple echo or brief error
-    conv.messages.pop(); // remove typing
+    // network or other unexpected error
+    conv.messages = conv.messages.filter(m => m.role !== 'system');
     conv.messages.push({
       role: 'assistant',
-      content: `(demo fallback) ${text}`,
+      content: `(network fallback) ${String(err)}`,
       meta: new Date().toLocaleString()
     });
     console.error('sendMessage error', err);
@@ -130,7 +153,39 @@ async function sendMessage(text) {
   renderMessages();
 }
 
+// --- form and keyboard handling ---
+// disable default Enter-to-submit. We'll manage submission manually.
 form.addEventListener('submit', e => {
+  e.preventDefault(); // prevent accidental form submit on Enter
+});
+
+// Ctrl+Enter to send. Shift+Enter adds newline. Enter alone adds newline.
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (e.ctrlKey || e.metaKey) { // support Cmd+Enter on mac
+      e.preventDefault();
+      const t = input.value.trim();
+      if (!t) return;
+      input.value = '';
+      sendMessage(t);
+    } else if (e.shiftKey) {
+      // allow newline
+      return;
+    } else {
+      // plain Enter -> insert newline (prevent form submit)
+      e.preventDefault();
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const value = input.value;
+      input.value = value.slice(0, start) + '\n' + value.slice(end);
+      // place caret after newline
+      input.selectionStart = input.selectionEnd = start + 1;
+    }
+  }
+});
+
+// clicking Send button still works
+form.querySelector('.send').addEventListener('click', e => {
   e.preventDefault();
   const t = input.value.trim();
   if (!t) return;
