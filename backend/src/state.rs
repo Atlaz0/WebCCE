@@ -46,6 +46,7 @@ pub type RoomManager = Arc<Mutex<HashMap<i32, Room>>>;
 pub struct AppState {
     pub file_system: FileSystem,
     pub room_manager: RoomManager,
+    pub openai_api_key: String,
 }
 
 

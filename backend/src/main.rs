@@ -40,9 +40,13 @@ async fn main() {
 
     tracing::info!("[main] ==> Application starting up...");
 
+    let openai_key = env::var("OPENAI_API_KEY")
+    .expect("OPENAI_API_KEY must be set in environment");
+
     let app_state = AppState {
         file_system: create_initial_data(),
         room_manager: Arc::new(Mutex::new(HashMap::new())),
+        openai_api_key: openai_key,
     };
 
     let cors = CorsLayer::new()
