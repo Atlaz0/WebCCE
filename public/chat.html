@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Chat UI demo</title>
+    <link rel="stylesheet" href="chat.css">
+</head>
+
+<body>
+    <div class="app" id="app">
+        <aside class="sidebar">
+            <div class="logo">Chat UI demo</div>
+            <div class="history" id="history"></div>
+            <div class="controls">
+                <button id="newConv">New</button>
+                <button id="clearAll">Clear</button>
+            </div>
+        </aside>
+
+
+        <main class="main">
+            <div class="header">
+                <h1 id="convTitle">New conversation</h1>
+            </div>
+            <div class="messages" id="messages"></div>
+            <div class="composer">
+                <form id="form" class="input-row" autocomplete="off">
+                    <textarea id="input" placeholder="Type a message and press Enter" required></textarea>
+                    <button class="send">Send</button>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script src="chat.js"></script>
+</body>
+
+</html>

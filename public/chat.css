@@ -1,0 +1,171 @@
+:root {
+    --bg: #0f1724;
+    --panel: #0b1220;
+    --muted: #9aa4b2;
+    --accent: #10b981;
+    --bubble: #14232b;
+    --me: #08303a
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    background: linear-gradient(180deg, #071022 0%, #081228 100%);
+    font-family: Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    color: #e6eef6
+}
+
+.app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 18px;
+    height: 100vh;
+    padding: 18px;
+    box-sizing: border-box
+}
+
+.sidebar {
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column
+}
+
+.logo {
+    font-weight: 700;
+    margin: 6px 0 12px 4px
+}
+
+.history {
+    flex: 1;
+    overflow: auto;
+    padding-right: 6px
+}
+
+.history button {
+    width: 100%;
+    text-align: left;
+    padding: 10px;
+    border-radius: 8px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    margin-bottom: 6px
+}
+
+.history button.active {
+    background: #07212a;
+    color: #ddf3f4
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px
+}
+
+.controls button {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: 0;
+    background: #07212a;
+    color: var(--muted);
+    cursor: pointer
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border-radius: 12px;
+    overflow: hidden
+}
+
+.header {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.header h1 {
+    font-size: 16px;
+    margin: 0
+}
+
+.messages {
+    flex: 1;
+    overflow: auto;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px
+}
+
+.msg {
+    max-width: 75%;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--bubble);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02) inset
+}
+
+.msg.me {
+    margin-left: auto;
+    background: linear-gradient(180deg, var(--me), #07383f);
+    color: #cfeef0
+}
+
+.meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px
+}
+
+.composer {
+    padding: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent)
+}
+
+.input-row {
+    display: flex;
+    gap: 8px
+}
+
+textarea {
+    flex: 1;
+    min-height: 48px;
+    max-height: 180px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    background: transparent;
+    color: inherit;
+    resize: none
+}
+
+.send {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 0;
+    background: var(--accent);
+    color: #042023;
+    cursor: pointer
+}
+
+@media (max-width:800px) {
+    .app {
+        grid-template-columns: 1fr;
+        padding: 12px
+    }
+
+    .sidebar {
+        display: none
+    }
+}
