@@ -1,6 +1,7 @@
-// src/chat.rs
 use axum::{extract::State, Json};
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
+use tracing::{info, warn, error};
 
 use crate::AppState;
 
@@ -51,7 +52,7 @@ pub async fn handle_chat(
     State(state): State<AppState>,
     Json(payload): Json<ChatRequest>,
 ) -> Json<ChatResponse> {
-    // build OA messages
+    // Build OA-compatible messages
     let oa_msgs: Vec<OaIMsg> = payload
         .messages
         .iter()
@@ -59,10 +60,15 @@ pub async fn handle_chat(
         .collect();
 
     let req_body = OaiReq {
-        model: "gpt-5-nano",
+        model: "gpt-5-nano", // kept as requested
         messages: oa_msgs,
-        max_tokens: Some(600),
+        max_tokens: Some(800),
     };
+
+    // Log request for debugging
+    let body_json = serde_json::to_string(&req_body).unwrap_or_else(|_| "(serialize error)".into());
+    info!("OpenAI request url=https://api.openai.com/v1/chat/completions key_present={}", !state.openai_api_key.is_empty());
+    info!("OpenAI request body: {}", body_json);
 
     let client = reqwest::Client::new();
     let res = client
@@ -72,7 +78,8 @@ pub async fn handle_chat(
         .send()
         .await;
 
-    let reply = match res {
+    // Handle response
+    let reply_text = match res {
         Ok(r) if r.status().is_success() => {
             match r.json::<OaiResp>().await {
                 Ok(parsed) => {
@@ -84,22 +91,25 @@ pub async fn handle_chat(
                         .unwrap_or_else(|| "(no reply)".to_string())
                 }
                 Err(e) => {
-                    tracing::warn!("OpenAI parse error: {}", e);
+                    warn!("OpenAI parse error: {}", e);
                     "(error parsing OpenAI response)".to_string()
                 }
             }
         }
-        Ok(r) => {
+
+        Ok(mut r) => {
+            // return full body for debugging
             let status = r.status();
-            let text = r.text().await.unwrap_or_default();
-            tracing::warn!("OpenAI returned {}: {}", status, text);
-            format!("(openai error {})", status)
+            let body = r.text().await.unwrap_or_else(|_| "(no body)".to_string());
+            warn!("OpenAI returned {}: {}", status, body);
+            return Json(ChatResponse { reply: format!("openai {}: {}", status, body) });
         }
+
         Err(e) => {
-            tracing::error!("network error calling OpenAI: {}", e);
+            error!("network error calling OpenAI: {}", e);
             "(network error)".to_string()
         }
     };
 
-    Json(ChatResponse { reply })
+    Json(ChatResponse { reply: reply_text })
 }
