@@ -18,6 +18,7 @@ mod auth;
 mod state;
 mod files;
 mod ws;
+mod chat;
 
 use state::{AppState, create_initial_data};
 
