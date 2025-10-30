@@ -59,9 +59,9 @@ pub async fn handle_chat(
         .collect();
 
     let req_body = OaiReq {
-        model: "gpt-5",
+        model: "gpt-5-nano",
         messages: oa_msgs,
-        max_tokens: Some(800),
+        max_tokens: Some(600),
     };
 
     let client = reqwest::Client::new();
