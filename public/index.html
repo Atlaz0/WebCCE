@@ -509,6 +509,13 @@
     document.getElementById('play-icon').outerHTML = '<svg id="play-icon" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>';
     document.getElementById('seek').value = 0;
     document.getElementById('time-display').textContent = '0:00 / 0:00';
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: SONGS[idx].title,
+        artist: SONGS[idx].composer,
+        album: 'Klassitsismi kuulamiskava'
+      });
+    }
     if (autoplay) {
       player.addEventListener('canplay', function onCanPlay() {
         player.removeEventListener('canplay', onCanPlay);
