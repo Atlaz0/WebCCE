@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebCCE Collaborative Editor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="file-manager" class="panel">
+            <div class="file-manager-header">
+                <div class="projects">
+                    <h2>Projects</h2>
+                    <button id="save-button" disabled>Save</button>
+                </div>
+                <h3>Backend status</h3>
+                <div class="bi">
+                    <button class="pingbutton" id="PingBackend">Ping</button>
+                    <div class="ping"></div>
+                </div>
+            </div>
+            <div id="file-tree"></div>
+        </div>
+
+        <div class="resizer" id="resizer-fm-ed"></div>
+
+        <div id="right-content" class="panel">
+            
+            <div id="editor-container" class="panel">
+            </div>
+
+            <div class="resizer" id="resizer-ed-pv"></div>
+
+            <div id="preview-container" class="panel">
+                <iframe id="preview-frame" title="Live Preview"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
