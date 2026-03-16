@@ -114,9 +114,11 @@
       margin-bottom: 1rem;
     }
     .card-index { font-size: 12px; color: var(--text3); margin-bottom: 0.75rem; }
-    .card-composer { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 0.35rem; }
-    .card-title { font-size: 20px; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: 0.4rem; }
-    .card-detail { font-size: 14px; color: var(--text2); }
+    .card-composer { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 0.35rem; transition: filter 0.15s; }
+    .card-title { font-size: 20px; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: 0.4rem; transition: filter 0.15s; }
+    .card-detail { font-size: 14px; color: var(--text2); transition: filter 0.15s; }
+    .blurred { filter: blur(5px); cursor: pointer; }
+    .blurred:hover { filter: blur(0); }
 
     .status-badge {
       display: inline-block;
@@ -134,23 +136,28 @@
       padding: 0.85rem 1rem;
       margin-bottom: 0.75rem;
       display: flex;
-      align-items: center;
+      flex-direction: row;
+      align-items: stretch;
       gap: 0.75rem;
     }
     #play-btn {
-      width: 36px; height: 36px;
+      width: 48px; height: 48px;
       border-radius: 50%;
       border: none;
       background: var(--text);
       color: var(--bg);
-      font-size: 14px;
+      font-size: 0;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
-      transition: opacity 0.15s;
+      align-self: center;
+      transition: opacity 0.15s, transform 0.1s;
+      position: relative;
     }
-    #play-btn:hover { opacity: 0.8; }
-    #seek-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    #play-btn:hover { opacity: 0.85; transform: scale(1.05); }
+    #play-btn:active { transform: scale(0.95); }
+    #play-btn svg { width: 20px; height: 20px; fill: var(--bg); }
+    #seek-wrap { flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: center; padding-top: 15px; }
     #seek {
       width: 100%;
       height: 4px;
@@ -177,7 +184,7 @@
     }
     #time-display { font-size: 11px; color: var(--text3); font-variant-numeric: tabular-nums; }
 
-    #btn-row { display: flex; gap: 0.75rem; margin-bottom: 0.6rem; }
+    #btn-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
     .btn {
       flex: 1; padding: 0.85rem;
       border: none; border-radius: var(--radius-md);
@@ -190,6 +197,72 @@
     .btn-know { background: var(--green-bg); color: var(--green-text); }
     .btn-dontknow { background: var(--red-bg); color: var(--red-text); }
 
+    #toggles { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.85rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-label { font-size: 13px; color: var(--text2); }
+    .toggle-sw {
+      width: 36px; height: 20px;
+      background: var(--border2);
+      border-radius: 10px;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle-sw::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: white;
+      transition: transform 0.2s;
+    }
+    .toggle-sw.on { background: var(--green-bar); }
+    .toggle-sw.on::after { transform: translateX(16px); }
+
+    /* Clip duration selector — shown only when clip mode is on */
+    #clip-duration-row {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.55rem 0.85rem 0.55rem 2.5rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      margin-top: -0.5rem;
+    }
+    #clip-duration-row.visible { display: flex; }
+    #clip-duration-row label { font-size: 12px; color: var(--text3); white-space: nowrap; }
+    .clip-stepper { display: flex; align-items: center; gap: 0.5rem; }
+    .clip-step-btn {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text2);
+      font-size: 16px; line-height: 1;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-family: inherit;
+      transition: border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .clip-step-btn:hover { border-color: var(--text3); }
+    .clip-step-btn:active { opacity: 0.7; }
+    #clip-val { font-size: 13px; font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; min-width: 42px; text-align: center; }
+
     #nav-row { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
     .btn-nav {
       flex: 1; padding: 0.55rem;
@@ -198,11 +271,11 @@
       border-radius: var(--radius-md);
       font-size: 13px; cursor: pointer;
       color: var(--text2); font-family: inherit;
-      transition: border-color 0.15s, opacity 0.15s;
+      transition: border-color 0.15s;
     }
     .btn-nav:hover { border-color: var(--text3); }
-    .btn-nav:disabled { opacity: 0.3; cursor: default; }
 
+    #reset-wrap { text-align: center; }
     #reset-btn {
       font-size: 12px; color: var(--text3);
       background: none; border: none;
@@ -211,9 +284,34 @@
     }
     #reset-btn:hover { color: var(--text2); }
 
-    @media (max-width: 480px) {
-      .card { padding: 1.5rem 1.25rem; }
-      .card-title { font-size: 18px; }
+    @media (max-width: 600px) {
+      body { padding: 1.25rem 0.75rem 3rem; }
+      #app { max-width: 100%; }
+      h1 { font-size: 11px; margin-bottom: 1.25rem; }
+      .stat-num { font-size: 22px; }
+      .stat-label { font-size: 11px; }
+      #stats { gap: 1rem; }
+      .dot { width: 34px; height: 34px; font-size: 12px; }
+      .card { padding: 1.25rem; }
+      .card-composer { font-size: 14px; }
+      .card-title { font-size: 22px; }
+      .card-detail { font-size: 15px; }
+      .card-index { font-size: 13px; }
+      .status-badge { font-size: 14px; padding: 5px 14px; }
+      #play-btn { width: 52px; height: 52px; }
+      #player-wrap { padding: 0.9rem 1rem; }
+      #seek { height: 6px; }
+      #seek::-webkit-slider-thumb { width: 18px; height: 18px; }
+      #seek::-moz-range-thumb { width: 18px; height: 18px; }
+      #time-display { font-size: 13px; }
+      .btn { padding: 1rem; font-size: 17px; }
+      .toggle-row { padding: 0.75rem 1rem; }
+      .toggle-label { font-size: 15px; }
+      .toggle-sw { width: 44px; height: 24px; }
+      .toggle-sw::after { width: 18px; height: 18px; }
+      .toggle-sw.on::after { transform: translateX(20px); }
+      .btn-nav { padding: 0.75rem; font-size: 15px; }
+      #reset-btn { font-size: 13px; }
     }
   </style>
 </head>
@@ -224,19 +322,15 @@
   <div id="stats">
     <div class="stat">
       <span class="stat-num" id="stat-total">15</span>
-      <span class="stat-label">kokku</span>
+      <span class="stat-label">Kokku</span>
     </div>
     <div class="stat">
       <span class="stat-num green" id="stat-know">0</span>
-      <span class="stat-label">tean</span>
+      <span class="stat-label">Tean</span>
     </div>
     <div class="stat">
       <span class="stat-num red" id="stat-dontknow">0</span>
-      <span class="stat-label">ei tea</span>
-    </div>
-    <div class="stat">
-      <span class="stat-num" id="stat-seen">0</span>
-      <span class="stat-label">kuulatud</span>
+      <span class="stat-label">Ei tea</span>
     </div>
   </div>
 
@@ -255,7 +349,9 @@
   </div>
 
   <div id="player-wrap">
-    <button id="play-btn" onclick="togglePlay()">&#9654;</button>
+    <button id="play-btn" onclick="togglePlay()">
+      <svg id="play-icon" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>
+    </button>
     <div id="seek-wrap">
       <input type="range" id="seek" min="0" max="100" value="0" step="0.1" oninput="seekTo(this.value)">
       <span id="time-display">0:00 / 0:00</span>
@@ -263,42 +359,89 @@
   </div>
 
   <div id="btn-row">
-    <button class="btn btn-know" onclick="mark('know')">&#10003; Tean</button>
-    <button class="btn btn-dontknow" onclick="mark('dontknow')">&#10007; Ei tea</button>
+    <button class="btn btn-know" onclick="mark('know')">Tean</button>
+    <button class="btn btn-dontknow" onclick="mark('dontknow')">Ei tea</button>
+  </div>
+
+  <div id="toggles">
+    <div class="toggle-row" onclick="toggleMode('autoplay')">
+      <span class="toggle-label">Automaatne m&#228;ngimine</span>
+      <div class="toggle-sw on" id="sw-autoplay"></div>
+    </div>
+    <div class="toggle-row" onclick="toggleMode('random')">
+      <span class="toggle-label">Juhuslik alguskoht</span>
+      <div class="toggle-sw" id="sw-random"></div>
+    </div>
+    <div class="toggle-row" onclick="toggleMode('shuffle')">
+      <span class="toggle-label">Suvaline j&#228;rjekord</span>
+      <div class="toggle-sw" id="sw-shuffle"></div>
+    </div>
+    <div class="toggle-row" onclick="toggleMode('autoplay')">
+      <span class="toggle-label">Automaatne m&#228;ngimine</span>
+      <div class="toggle-sw on" id="sw-autoplay"></div>
+    </div>
+    <div class="toggle-row" onclick="toggleMode('clip')">
+      <span class="toggle-label">L&#245;igu pikkus</span>
+      <div class="toggle-sw" id="sw-clip"></div>
+    </div>
+    <div id="clip-duration-row">
+      <label>Kestus</label>
+      <div class="clip-stepper">
+        <button class="clip-step-btn" onclick="stepClip(-5)">&#8722;</button>
+        <span id="clip-val">10 s</span>
+        <button class="clip-step-btn" onclick="stepClip(5)">+</button>
+      </div>
+    </div>
+    <div class="toggle-row" onclick="toggleMode('blur')">
+      <span class="toggle-label">Peida nimed</span>
+      <div class="toggle-sw" id="sw-blur"></div>
+    </div>
   </div>
 
   <div id="nav-row">
-    <button class="btn-nav" id="btn-prev" onclick="go(-1)">&larr; Eelmine</button>
-    <button class="btn-nav" id="btn-next" onclick="go(1)">Jargmine &rarr;</button>
+    <button class="btn-nav" onclick="go(-1)">Eelmine laul</button>
+    <button class="btn-nav" onclick="go(1)">J&#228;rgmine laul</button>
   </div>
 
-  <button id="reset-btn" onclick="resetAll()">lahtesta koik margistused</button>
+  <div id="reset-wrap">
+    <button id="reset-btn" onclick="resetAll()">Kustuta k&#245;ik valikud</button>
+  </div>
 </div>
 
 <script>
   var SONGS = [
     { composer: "Joseph Haydn", title: "Trompetikontsert Es-duur", detail: "III osa", audio: "/audio/01.mp3" },
     { composer: "Joseph Haydn", title: "Keelpillikvartett op 76, nr 3 (Keisrikvartett)", detail: "II osa", audio: "/audio/02.mp3" },
-    { composer: "Joseph Haydn", title: "Sumfoonia nr 94 (Ullatussumfoonia)", detail: "II osa", audio: "/audio/03.mp3" },
-    { composer: "Joseph Haydn", title: "Sumfoonia nr 45 (Lahkumissumfoonia)", detail: "I osa", audio: "/audio/04.mp3" },
-    { composer: "Wolfgang Amadeus Mozart", title: "Sumfoonia nr 40", detail: "I osa", audio: "/audio/05.mp3" },
+    { composer: "Joseph Haydn", title: "S\u00fcmfoonia nr 94 (\u00dcllatuss\u00fcmfoonia)", detail: "II osa", audio: "/audio/03.mp3" },
+    { composer: "Joseph Haydn", title: "S\u00fcmfoonia nr 45 (Lahkumiss\u00fcmfoonia)", detail: "I osa", audio: "/audio/04.mp3" },
+    { composer: "Wolfgang Amadeus Mozart", title: "S\u00fcmfoonia nr 40", detail: "I osa", audio: "/audio/05.mp3" },
     { composer: "Wolfgang Amadeus Mozart", title: "Klaverikontsert nr 20 d-moll", detail: "II osa", audio: "/audio/06.mp3" },
-    { composer: "Wolfgang Amadeus Mozart", title: "Vaike oomuusika", detail: "I osa - Allegro", audio: "/audio/07.mp3" },
-    { composer: "Wolfgang Amadeus Mozart", title: "Avamang ooperist Figaro pulm", detail: "", audio: "/audio/08.mp3" },
-    { composer: "Wolfgang Amadeus Mozart", title: "Ooper Volufloot", detail: "koor I vaatusest", audio: "/audio/09.mp3" },
-    { composer: "Wolfgang Amadeus Mozart", title: "Reekviem", detail: "koor Lacrimosa (Pisaraterohke paev)", audio: "/audio/10.mp3" },
+    { composer: "Wolfgang Amadeus Mozart", title: "V\u00e4ike \u00f6\u00f6muusika", detail: "I osa \u2014 Allegro", audio: "/audio/07.mp3" },
+    { composer: "Wolfgang Amadeus Mozart", title: "Avam\u00e4ng ooperist \u201eFigaro pulm\u201c", detail: "", audio: "/audio/08.mp3" },
+    { composer: "Wolfgang Amadeus Mozart", title: "Ooper \u201eV\u00f5lufl\u00f6\u00f6t\u201c", detail: "Koor I vaatusest", audio: "/audio/09.mp3" },
+    { composer: "Wolfgang Amadeus Mozart", title: "Reekviem", detail: "Koor \u201eLacrimosa\u201c (Pisaraterohke p\u00e4ev)", audio: "/audio/10.mp3" },
     { composer: "Ludwig van Beethoven", title: "Klaverisonaat nr 23 (Appassionata)", detail: "I osa", audio: "/audio/11.mp3" },
     { composer: "Ludwig van Beethoven", title: "Klaverisonaat nr 8 (Pateetiline)", detail: "II osa", audio: "/audio/12.mp3" },
-    { composer: "Ludwig van Beethoven", title: "Sumfoonia nr 5", detail: "I osa", audio: "/audio/13.mp3" },
-    { composer: "Ludwig van Beethoven", title: "Sumfoonia nr 7", detail: "II osa - Allegretto", audio: "/audio/14.mp3" },
-    { composer: "Ludwig van Beethoven", title: "Sumfoonia nr 9", detail: "IV osa - Ood roomule (katkend)", audio: "/audio/15.mp3" }
+    { composer: "Ludwig van Beethoven", title: "S\u00fcmfoonia nr 5", detail: "I osa", audio: "/audio/13.mp3" },
+    { composer: "Ludwig van Beethoven", title: "S\u00fcmfoonia nr 7", detail: "II osa \u2014 Allegretto", audio: "/audio/14.mp3" },
+    { composer: "Ludwig van Beethoven", title: "S\u00fcmfoonia nr 9", detail: "IV osa \u2014 \u201eOod r\u00f5\u00f5mule\u201c (katkend)", audio: "/audio/15.mp3" }
   ];
 
   var KEY = 'klassitsism_v1';
   var state = { marks: {}, seen: {} };
-  try { var s = localStorage.getItem(KEY); if (s) state = JSON.parse(s); } catch(e) {}
+  try { var sv = localStorage.getItem(KEY); if (sv) state = JSON.parse(sv); } catch(e) {}
+
   var cur = 0;
   var loadedIdx = -1;
+  var modeAutoplay = true;
+  var modeRandom = false;
+  var modeShuffle = false;
+  var modeAutoplay = true;
+  var modeClip = false;
+  var modeBlur = false;
+  var clipDuration = 10;
+  var clipTimer = null;
+  var shuffleQueue = [];
   var player = new Audio();
 
   player.addEventListener('timeupdate', function() {
@@ -307,52 +450,96 @@
     document.getElementById('time-display').textContent = fmt(player.currentTime) + ' / ' + fmt(player.duration);
   });
   player.addEventListener('ended', function() {
-    document.getElementById('play-btn').innerHTML = '&#9654;';
+    clearClipTimer();
+    if (modeAutoplay) {
+      cur = nextIdx(cur, 1);
+      state.seen[cur] = true;
+      save();
+      render(true);
+    } else {
+      document.getElementById('play-icon').outerHTML = '<svg id="play-icon" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>';
+    }
   });
   player.addEventListener('loadedmetadata', function() {
     document.getElementById('time-display').textContent = '0:00 / ' + fmt(player.duration);
+    if (modeRandom && player.duration > 0) {
+      player.currentTime = Math.random() * player.duration;
+    }
   });
   player.addEventListener('error', function() {
-    document.getElementById('time-display').textContent = 'viga';
+    document.getElementById('time-display').textContent = 'Viga';
   });
 
-  function fmt(s) {
-    var m = Math.floor(s / 60);
-    var sec = Math.floor(s % 60).toString().padStart(2, '0');
-    return m + ':' + sec;
+  function fmt(sec) {
+    var m = Math.floor(sec / 60);
+    var s2 = Math.floor(sec % 60).toString().padStart(2, '0');
+    return m + ':' + s2;
   }
 
-  function ensureLoaded(idx) {
-    if (loadedIdx === idx) return;
-    var wasPlaying = !player.paused;
+  function clearClipTimer() {
+    if (clipTimer) { clearTimeout(clipTimer); clipTimer = null; }
+  }
+
+  function startClipTimer() {
+    clearClipTimer();
+    if (!modeClip) return;
+    clipTimer = setTimeout(function() {
+      player.pause();
+      document.getElementById('play-icon').outerHTML = '<svg id="play-icon" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>';
+    }, clipDuration * 1000);
+  }
+
+  function stepClip(delta) {
+    clipDuration = Math.max(5, Math.min(300, clipDuration + delta));
+    document.getElementById('clip-val').textContent = clipDuration + ' s';
+  }
+
+  // Load song at idx. If wasPlaying is true, auto-play after load.
+  function loadSong(idx, autoplay) {
+    if (loadedIdx === idx) {
+      if (autoplay && player.paused) {
+        player.play().then(function() {
+          document.getElementById('play-icon').outerHTML = '<svg id="play-icon" viewBox="0 0 24 24"><rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/></svg>';
+          startClipTimer();
+        }).catch(function() {});
+      }
+      return;
+    }
+    clearClipTimer();
     player.pause();
     player.src = SONGS[idx].audio;
     player.load();
     loadedIdx = idx;
-    document.getElementById('play-btn').innerHTML = '&#9654;';
+    document.getElementById('play-icon').outerHTML = '<svg id="play-icon" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>';
     document.getElementById('seek').value = 0;
     document.getElementById('time-display').textContent = '0:00 / 0:00';
-    if (wasPlaying) {
-      player.play().catch(function() {});
-      document.getElementById('play-btn').innerHTML = '&#9646;&#9646;';
+    if (autoplay) {
+      player.addEventListener('canplay', function onCanPlay() {
+        player.removeEventListener('canplay', onCanPlay);
+        player.play().then(function() {
+          document.getElementById('play-icon').outerHTML = '<svg id="play-icon" viewBox="0 0 24 24"><rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/></svg>';
+          startClipTimer();
+        }).catch(function() {});
+      });
     }
   }
 
   function togglePlay() {
     if (loadedIdx !== cur) {
-      player.src = SONGS[cur].audio;
-      player.load();
-      loadedIdx = cur;
+      loadSong(cur, true);
+      return;
     }
     if (player.paused) {
       player.play().then(function() {
-        document.getElementById('play-btn').innerHTML = '&#9646;&#9646;';
+        document.getElementById('play-icon').outerHTML = '<svg id="play-icon" viewBox="0 0 24 24"><rect x="5" y="4" width="4" height="16"/><rect x="15" y="4" width="4" height="16"/></svg>';
+        startClipTimer();
       }).catch(function(e) {
-        console.warn('play failed', e);
+        console.warn('Play failed', e);
       });
     } else {
       player.pause();
-      document.getElementById('play-btn').innerHTML = '&#9654;';
+      document.getElementById('play-icon').outerHTML = '<svg id="play-icon" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>';
+      clearClipTimer();
     }
   }
 
@@ -360,37 +547,93 @@
     if (player.duration) player.currentTime = (val / 100) * player.duration;
   }
 
+  function buildShuffleQueue() {
+    var n = SONGS.length;
+    var arr = [];
+    for (var i = 0; i < n; i++) {
+      if (state.marks[i] !== 'know') arr.push(i);
+    }
+    // Fisher-Yates shuffle
+    for (var j = arr.length - 1; j > 0; j--) {
+      var k = Math.floor(Math.random() * (j + 1));
+      var tmp = arr[j]; arr[j] = arr[k]; arr[k] = tmp;
+    }
+    shuffleQueue = arr;
+  }
+
+  function toggleMode(mode) {
+    if (mode === 'autoplay') {
+      modeAutoplay = !modeAutoplay;
+      document.getElementById('sw-autoplay').classList.toggle('on', modeAutoplay);
+    } else if (mode === 'random') {
+      modeRandom = !modeRandom;
+      document.getElementById('sw-random').classList.toggle('on', modeRandom);
+    } else if (mode === 'shuffle') {
+      modeShuffle = !modeShuffle;
+      document.getElementById('sw-shuffle').classList.toggle('on', modeShuffle);
+      if (modeShuffle) buildShuffleQueue();
+    } else if (mode === 'clip') {
+      modeClip = !modeClip;
+      document.getElementById('sw-clip').classList.toggle('on', modeClip);
+      document.getElementById('clip-duration-row').classList.toggle('visible', modeClip);
+      if (!modeClip) clearClipTimer();
+    } else if (mode === 'blur') {
+      modeBlur = !modeBlur;
+      document.getElementById('sw-blur').classList.toggle('on', modeBlur);
+      applyBlur();
+    }
+  }
+
+  function applyBlur() {
+    ['card-composer', 'card-title', 'card-detail'].forEach(function(id) {
+      document.getElementById(id).classList.toggle('blurred', modeBlur);
+    });
+  }
+
+  function nextIdx(from, dir) {
+    var n = SONGS.length;
+    if (modeShuffle) {
+      if (!shuffleQueue.length) buildShuffleQueue();
+      if (!shuffleQueue.length) return from;
+      var next = shuffleQueue.shift();
+      return next;
+    }
+    var idx = (from + dir + n) % n;
+    for (var i = 0; i < n - 1; i++) {
+      if (state.marks[idx] !== 'know') return idx;
+      idx = (idx + dir + n) % n;
+    }
+    return (from + dir + n) % n;
+  }
+
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
   }
 
-  function render() {
+  function render(autoplay) {
     var s = SONGS[cur];
     document.getElementById('card-index').textContent = (cur + 1) + ' / ' + SONGS.length;
     document.getElementById('card-composer').textContent = s.composer;
     document.getElementById('card-title').textContent = s.title;
     document.getElementById('card-detail').textContent = s.detail;
+    applyBlur();
 
     var badge = document.getElementById('card-badge');
     var m = state.marks[cur];
-    if (m === 'know') badge.innerHTML = '<span class="status-badge badge-know">&#10003; Tean</span>';
-    else if (m === 'dontknow') badge.innerHTML = '<span class="status-badge badge-dontknow">&#10007; Ei tea</span>';
+    if (m === 'know') badge.innerHTML = '<span class="status-badge badge-know">Tean</span>';
+    else if (m === 'dontknow') badge.innerHTML = '<span class="status-badge badge-dontknow">Ei tea</span>';
     else badge.innerHTML = '';
 
-    document.getElementById('btn-prev').disabled = false;
-    document.getElementById('btn-next').disabled = false;
     updateStats();
     renderDots();
-    ensureLoaded(cur);
+    loadSong(cur, !!autoplay);
   }
 
   function updateStats() {
     var know = Object.values(state.marks).filter(function(v) { return v === 'know'; }).length;
     var dont = Object.values(state.marks).filter(function(v) { return v === 'dontknow'; }).length;
-    var seen = Object.keys(state.seen).length;
     document.getElementById('stat-know').textContent = know;
     document.getElementById('stat-dontknow').textContent = dont;
-    document.getElementById('stat-seen').textContent = seen;
     document.getElementById('progress-bar').style.width = (((know + dont) / SONGS.length) * 100).toFixed(1) + '%';
   }
 
@@ -406,7 +649,11 @@
       d.className = cls;
       d.textContent = i + 1;
       d.onclick = (function(idx) {
-        return function() { cur = idx; state.seen[idx] = true; save(); render(); };
+        return function() {
+          var wasPlaying = !player.paused;
+          cur = idx; state.seen[idx] = true; save();
+          render(wasPlaying);
+        };
       })(i);
       wrap.appendChild(d);
     });
@@ -416,23 +663,26 @@
     state.marks[cur] = val;
     state.seen[cur] = true;
     save();
-    if (cur < SONGS.length - 1) { cur++; state.seen[cur] = true; save(); }
-    render();
+    cur = nextIdx(cur, 1);
+    state.seen[cur] = true;
+    save();
+    render(false);
   }
 
   function go(dir) {
-    cur = (cur + dir + SONGS.length) % SONGS.length;
+    var wasPlaying = !player.paused;
+    cur = nextIdx(cur, dir);
     state.seen[cur] = true;
     save();
-    render();
+    render(wasPlaying);
   }
 
   function resetAll() {
-    if (!confirm('Lahtesta koik margistused?')) return;
+    if (!confirm('Kustuta k\u00f5ik valikud?')) return;
     state = { marks: {}, seen: {} };
     cur = 0;
     save();
-    render();
+    render(false);
   }
 
   document.addEventListener('keydown', function(e) {
@@ -446,7 +696,7 @@
 
   state.seen[0] = true;
   save();
-  render();
+  render(false);
 </script>
 </body>
 </html>
