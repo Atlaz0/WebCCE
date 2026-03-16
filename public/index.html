@@ -298,19 +298,22 @@
   var state = { marks: {}, seen: {} };
   try { var s = localStorage.getItem(KEY); if (s) state = JSON.parse(s); } catch(e) {}
   var cur = 0;
-  var audio = new Audio();
+  var loadedIdx = -1;
+  var player = new Audio();
 
-  audio.addEventListener('timeupdate', function() {
-    if (!audio.duration) return;
-    document.getElementById('seek').value = (audio.currentTime / audio.duration) * 100;
-    document.getElementById('time-display').textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
+  player.addEventListener('timeupdate', function() {
+    if (!player.duration) return;
+    document.getElementById('seek').value = (player.currentTime / player.duration) * 100;
+    document.getElementById('time-display').textContent = fmt(player.currentTime) + ' / ' + fmt(player.duration);
   });
-  audio.addEventListener('ended', function() {
+  player.addEventListener('ended', function() {
     document.getElementById('play-btn').innerHTML = '&#9654;';
   });
-  audio.addEventListener('loadedmetadata', function() {
-    document.getElementById('time-display').textContent = '0:00 / ' + fmt(audio.duration);
-    document.getElementById('seek').value = 0;
+  player.addEventListener('loadedmetadata', function() {
+    document.getElementById('time-display').textContent = '0:00 / ' + fmt(player.duration);
+  });
+  player.addEventListener('error', function() {
+    document.getElementById('time-display').textContent = 'viga';
   });
 
   function fmt(s) {
@@ -319,33 +322,42 @@
     return m + ':' + sec;
   }
 
-  function loadAudio(idx) {
-    var wasPlaying = !audio.paused;
-    audio.pause();
-    audio.src = SONGS[idx].audio;
-    audio.load();
+  function ensureLoaded(idx) {
+    if (loadedIdx === idx) return;
+    var wasPlaying = !player.paused;
+    player.pause();
+    player.src = SONGS[idx].audio;
+    player.load();
+    loadedIdx = idx;
     document.getElementById('play-btn').innerHTML = '&#9654;';
     document.getElementById('seek').value = 0;
     document.getElementById('time-display').textContent = '0:00 / 0:00';
     if (wasPlaying) {
-      audio.play();
+      player.play().catch(function() {});
       document.getElementById('play-btn').innerHTML = '&#9646;&#9646;';
     }
   }
 
   function togglePlay() {
-    if (audio.paused) {
-      if (!audio.src || audio.src === window.location.href) audio.src = SONGS[cur].audio;
-      audio.play();
-      document.getElementById('play-btn').innerHTML = '&#9646;&#9646;';
+    if (loadedIdx !== cur) {
+      player.src = SONGS[cur].audio;
+      player.load();
+      loadedIdx = cur;
+    }
+    if (player.paused) {
+      player.play().then(function() {
+        document.getElementById('play-btn').innerHTML = '&#9646;&#9646;';
+      }).catch(function(e) {
+        console.warn('play failed', e);
+      });
     } else {
-      audio.pause();
+      player.pause();
       document.getElementById('play-btn').innerHTML = '&#9654;';
     }
   }
 
   function seekTo(val) {
-    if (audio.duration) audio.currentTime = (val / 100) * audio.duration;
+    if (player.duration) player.currentTime = (val / 100) * player.duration;
   }
 
   function save() {
@@ -365,11 +377,11 @@
     else if (m === 'dontknow') badge.innerHTML = '<span class="status-badge badge-dontknow">&#10007; Ei tea</span>';
     else badge.innerHTML = '';
 
-    document.getElementById('btn-prev').disabled = cur === 0;
-    document.getElementById('btn-next').disabled = cur === SONGS.length - 1;
+    document.getElementById('btn-prev').disabled = false;
+    document.getElementById('btn-next').disabled = false;
     updateStats();
     renderDots();
-    loadAudio(cur);
+    ensureLoaded(cur);
   }
 
   function updateStats() {
@@ -409,7 +421,7 @@
   }
 
   function go(dir) {
-    cur = Math.max(0, Math.min(SONGS.length - 1, cur + dir));
+    cur = (cur + dir + SONGS.length) % SONGS.length;
     state.seen[cur] = true;
     save();
     render();
