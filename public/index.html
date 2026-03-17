@@ -458,7 +458,7 @@
   });
   player.addEventListener('loadedmetadata', function() {
     document.getElementById('time-display').textContent = '0:00 / ' + fmt(player.duration);
-    if (modeRandom && player.duration > 0) {
+    if (player.duration > 0 && (modeRandom || modeClip)) {
       player.currentTime = Math.random() * player.duration;
     }
   });
@@ -479,10 +479,12 @@
   function startClipTimer() {
     clearClipTimer();
     if (!modeClip) return;
+    var remaining = player.duration ? (player.duration - player.currentTime) : clipDuration;
+    var wait = Math.min(clipDuration, remaining) * 1000;
     clipTimer = setTimeout(function() {
       player.pause();
       document.getElementById('play-icon').outerHTML = '<svg id="play-icon" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>';
-    }, clipDuration * 1000);
+    }, wait);
   }
 
   function stepClip(delta) {
